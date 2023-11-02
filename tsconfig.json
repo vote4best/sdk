@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "declarationMap": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "CommonJS",
+    "lib": ["es2022", "es5"],
+    "declaration": true,
+    "outDir": "dist",
+    "strict": false,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": ["src"],
+  "exclude": []
+}
