@@ -1,6 +1,9 @@
-import { BestOfDiamond } from "vote4best-contracts/types";
 import { LibCoinVending } from "vote4best-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/BestOfDiamond";
-import { RankToken, GameMastersFacet } from "vote4best-contracts/types";
+import {
+  RankToken,
+  BestOfDiamond,
+  GameMastersFacet,
+} from "vote4best-contracts/types";
 import { BigNumberish, Bytes, BytesLike, ethers, Wallet } from "ethers";
 type SupportedChains =
   | "anvil"
@@ -242,14 +245,6 @@ export const openRegistration =
     return await contract.openRegistration(gameId);
   };
 
-export const submitVote =
-  (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
-  async (gameId: string, votesHidden: BytesLike, voter: string) => {
-    const contract = getContract(chain, signer);
-
-    return await contract.submitVote(gameId, votesHidden, voter);
-  };
-
 export const setJoinRequirements =
   (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
   async (gameId: string, config: LibCoinVending.ConfigPositionStruct) => {
@@ -358,13 +353,34 @@ export const getVoting =
   };
 
 export const getOngoingVoting =
-  (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
+  ({
+    chain,
+    signer,
+  }: {
+    chain: SupportedChains;
+    signer: ethers.providers.JsonRpcSigner;
+  }) =>
   async (gameId: BigNumberish) => {
     const contract = getContract(chain, signer);
     const currentTurn = await contract.getTurn(gameId);
     return getVoting(chain, signer)(gameId, currentTurn);
   };
 
+export const getOngoingProposals = async (
+  chainName: SupportedChains,
+  provider: ethers.providers.Web3Provider,
+  gameId: BigNumberish
+) => {
+  const contract = getContract(chainName, provider);
+  const currentTurn = await contract.getTurn(gameId);
+  console.debug("currentTurn", currentTurn.toString());
+  //list all events of gameId that ended turnId.
+  const filter = contract.filters.TurnEnded(gameId, currentTurn.sub(1));
+  const TurnEndedEvents = await contract.queryFilter(filter, 0, "latest");
+  const event = contract.interface.parseLog(TurnEndedEvents[0]);
+  console.log("getOngoingProposals", event);
+  return event.args.newProposals;
+};
 export class GameMaster {
   EIP712name: string;
   EIP712Version: string;
@@ -419,6 +435,15 @@ export class GameMaster {
     );
   };
 
+  submitVote = async (
+    gameId: string,
+    votesHidden: BytesLike,
+    voter: string
+  ) => {
+    const contract = getContract(this.chain, this.signer);
+
+    return await contract.submitVote(gameId, votesHidden, voter);
+  };
   proposerHidden = ({
     gameId,
     turn,
@@ -487,12 +512,7 @@ export class GameMaster {
     proposersIndicies: BigNumberish[]
   ) => {
     const contract = getContract(this.chain, this.signer);
-    return await contract.estimateGas.endTurn(
-      gameId,
-      votes,
-      newProposals,
-      proposersIndicies
-    );
+    return await contract.canEndTurn(gameId);
   };
   endTurn = async (
     gameId: string,

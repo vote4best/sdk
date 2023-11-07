@@ -25,7 +25,8 @@
     "build-esm": "tsc --project tsconfig.esm.json",
     "build-all": "yarn run build-esm && yarn run build-commonjs",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
-    "build": "yarn build-all && node ./copyPackageFile.js",
+    "build-dev": "yarn build-all && node ./copyPackageFile.js dev",
+    "build": "yarn build-all && node ./copyPackageFile.js prod",
     "postbuild": "cp README.md dist && prettier --write \"dist/**/*.{ts,js,json}\"",
     "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist/.changeset && cd dist && pnpm changeset publish"
   },
