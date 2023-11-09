@@ -2,10 +2,9 @@ import { LibCoinVending } from "vote4best-contracts/types/hardhat-diamond-abi/Ha
 import {
   RankToken,
   BestOfDiamond,
-  GameMastersFacet,
 } from "vote4best-contracts/types";
 import { BigNumberish, Bytes, BytesLike, ethers, Wallet } from "ethers";
-type SupportedChains =
+export type SupportedChains =
   | "anvil"
   | "localhost"
   | "mumbai"
@@ -26,8 +25,7 @@ export const chainIds = {
   anvil: 97113,
 };
 
-import aes from "crypto-js/aes";
-import cryptoJs from "crypto-js";
+
 
 export const getArtifact = (chain: string) => {
   const deployment = require(`vote4best-contracts/deployments/${chain}/BestOfGame.json`);
@@ -130,48 +128,58 @@ export const getGameState = async (
       );
     })
   );
+  const promises = [];
 
-  const scores = await contract.getScores(gameId);
-  const currentTurn = await contract.getTurn(gameId);
-  const isFinished = await contract.isGameOver(gameId);
-  const isOvetime = await contract.isOvertime(gameId);
-  const isLastTurn = await contract.isLastTurn(gameId);
-  const isOpen = await contract.isRegistrationOpen(gameId);
-  const createdBy = await contract.gameCreator(gameId);
-  const gameRank = await contract.getGameRank(gameId);
-  const players = await contract.getPlayers(gameId);
-  const canStart = await contract.canStartGame(gameId);
-
-  const gamePhase = isFinished
-    ? gameStatusEnum["finished"]
-    : isOvetime
-    ? gameStatusEnum["overtime"]
-    : isLastTurn
-    ? gameStatusEnum["lastTurn"]
-    : currentTurn.gt(0)
-    ? gameStatusEnum["started"]
-    : isOpen
-    ? gameStatusEnum["open"]
-    : gameMaster
-    ? gameStatusEnum["created"]
-    : gameStatusEnum["notFound"];
-
-  return {
-    gameMaster,
-    joinRequirements,
-    requirementsPerContract,
-    scores,
-    currentTurn,
-    isFinished,
-    isOvetime,
-    isLastTurn,
-    isOpen,
-    createdBy,
-    gameRank,
-    players,
-    canStart,
-    gamePhase,
-  };
+  promises.push(contract.getScores(gameId));
+  promises.push(contract.isGameOver(gameId));
+  promises.push(contract.isOvertime(gameId));
+  promises.push(contract.isLastTurn(gameId));
+  promises.push(contract.isRegistrationOpen(gameId));
+  promises.push(contract.gameCreator(gameId));
+  promises.push(contract.getGameRank(gameId));
+  promises.push(contract.getPlayers(gameId));
+  promises.push(contract.canStartGame(gameId));
+  return Promise.all(promises).then((values) => {
+    const scores = values[0];
+    const currentTurn = values[1];
+    const isFinished = values[2];
+    const isOvetime = values[3];
+    const isLastTurn = values[4];
+    const isOpen = values[5];
+    const createdBy = values[6];
+    const gameRank = values[7];
+    const players = values[8];
+    const canStart = values[9];
+    const gamePhase = isFinished
+      ? gameStatusEnum["finished"]
+      : isOvetime
+      ? gameStatusEnum["overtime"]
+      : isLastTurn
+      ? gameStatusEnum["lastTurn"]
+      : currentTurn.gt(0)
+      ? gameStatusEnum["started"]
+      : isOpen
+      ? gameStatusEnum["open"]
+      : gameMaster
+      ? gameStatusEnum["created"]
+      : gameStatusEnum["notFound"];
+    return {
+      gameMaster,
+      joinRequirements,
+      requirementsPerContract,
+      scores,
+      currentTurn,
+      isFinished,
+      isOvetime,
+      isLastTurn,
+      isOpen,
+      createdBy,
+      gameRank,
+      players,
+      canStart,
+      gamePhase,
+    };
+  });
 };
 
 export const createGame =
@@ -381,152 +389,6 @@ export const getOngoingProposals = async (
   console.log("getOngoingProposals", event);
   return event.args.newProposals;
 };
-export class GameMaster {
-  EIP712name: string;
-  EIP712Version: string;
-  signer: ethers.Wallet;
-  verifyingContract: string;
-  chain: SupportedChains;
-  constructor({
-    EIP712name,
-    EIP712Version,
-    verifyingContract,
-    signer,
-    chain,
-  }: {
-    EIP712name: string;
-    EIP712Version: string;
-    verifyingContract: string;
-    signer: ethers.Wallet;
-    chain: SupportedChains;
-  }) {
-    this.EIP712Version = EIP712Version;
-    this.EIP712name = EIP712name;
-    this.signer = signer;
-    this.chain = chain;
-    this.verifyingContract = verifyingContract;
-  }
-
-  getTurnSalt = ({
-    gameId,
-    turn,
-  }: {
-    gameId: BigNumberish;
-    turn: BigNumberish;
-  }) => {
-    return ethers.utils.solidityKeccak256(
-      ["bytes32", "uint256", "uint256"],
-      [ethers.utils.keccak256(this.signer.privateKey), gameId, turn]
-    );
-  };
-
-  getTurnPlayersSalt = ({
-    gameId,
-    turn,
-    proposer,
-  }: {
-    gameId: BigNumberish;
-    turn: BigNumberish;
-    proposer: string;
-  }) => {
-    return ethers.utils.solidityKeccak256(
-      ["address", "bytes32"],
-      [proposer, this.getTurnSalt({ gameId, turn })]
-    );
-  };
-
-  submitVote = async (
-    gameId: string,
-    votesHidden: BytesLike,
-    voter: string
-  ) => {
-    const contract = getContract(this.chain, this.signer);
-
-    return await contract.submitVote(gameId, votesHidden, voter);
-  };
-  proposerHidden = ({
-    gameId,
-    turn,
-    proposer,
-  }: {
-    gameId: BigNumberish;
-    turn: BigNumberish;
-    proposer: string;
-  }) => {
-    return ethers.utils.solidityKeccak256(
-      ["address", "bytes32"],
-      [proposer, this.getTurnPlayersSalt({ gameId, turn, proposer })]
-    );
-  };
-
-  submitProposal = async ({
-    gameId,
-
-    commitmentHash,
-    encryptedProposal,
-    proposer,
-  }: {
-    gameId: string;
-    commitmentHash: BytesLike;
-    encryptedProposal: string;
-    proposer: string;
-  }) => {
-    const contract = getContract(this.chain, this.signer);
-
-    const proposalData: GameMastersFacet.ProposalParamsStruct = {
-      gameId: gameId,
-      encryptedProposal,
-      commitmentHash,
-      proposer,
-    };
-    console.log("submitting proposal tx..", proposalData);
-
-    return contract.submitProposal(proposalData);
-  };
-  decryptProposals = async (gameId: string) => {
-    const contract = getContract(this.chain, this.signer);
-    const turn = await contract.getTurn(gameId);
-    const filterProposalEvent = contract.filters.ProposalSubmitted(
-      gameId,
-      turn
-    );
-    const proposalEvents = await contract.queryFilter(
-      filterProposalEvent,
-      0,
-      "latest"
-    );
-    const logs = proposalEvents.map((log) => contract.interface.parseLog(log));
-    const proposals = logs.map((log) =>
-      aes
-        .decrypt(log.args.proposalEncryptedByGM, this.signer.privateKey)
-        .toString(cryptoJs.enc.Utf8)
-    ) as string[];
-    console.log(proposals);
-
-    return proposals;
-  };
-  canEndTurn = async (
-    gameId: string,
-    votes: BigNumberish[][],
-    newProposals: string[],
-    proposersIndicies: BigNumberish[]
-  ) => {
-    const contract = getContract(this.chain, this.signer);
-    return await contract.canEndTurn(gameId);
-  };
-  endTurn = async (
-    gameId: string,
-    votes: [][],
-
-    newProposals: string[],
-    proposerIndicides: BigNumberish[]
-  ) => {
-    const contract = getContract(this.chain, this.signer);
-    return (
-      await contract.endTurn(gameId, votes, newProposals, proposerIndicides)
-    ).wait(1);
-  };
-}
 
 export class Player {
   EIP712name: string;
