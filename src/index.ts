@@ -1,8 +1,5 @@
 import { LibCoinVending } from "vote4best-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/BestOfDiamond";
-import {
-  RankToken,
-  BestOfDiamond,
-} from "vote4best-contracts/types";
+import { RankToken, BestOfDiamond } from "vote4best-contracts/types";
 import { BigNumberish, Bytes, BytesLike, ethers, Wallet } from "ethers";
 export type SupportedChains =
   | "anvil"
@@ -24,8 +21,6 @@ enum gameStatusEnum {
 export const chainIds = {
   anvil: 97113,
 };
-
-
 
 export const getArtifact = (chain: string) => {
   const deployment = require(`vote4best-contracts/deployments/${chain}/BestOfGame.json`);
@@ -100,6 +95,26 @@ export const getRankTokenBalance =
     return await contract.balanceOf(account, tokenId);
   };
 
+export const getProposalScoresList = async (
+  chain: SupportedChains,
+  provider: ethers.providers.Web3Provider,
+  gameId: string,
+  from?: number,
+  to?: number
+) => {
+  const contract = getContract(chain, provider);
+  const _from = from ?? 1;
+  const _to = to ?? (await contract.getTurn(gameId)).toNumber();
+  console.log("getProposalScore result", gameId, _from, _to);
+  const promises = [];
+  for (let i = _from; i < _to; i++) {
+    promises.push(getHistoricTurn(chain, provider)(gameId, i));
+  }
+  const result = await Promise.all(promises);
+  console.log("getProposalScore result", result);
+  return result;
+};
+
 export const getCurrentTurn = async (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider,
@@ -131,6 +146,7 @@ export const getGameState = async (
   const promises = [];
 
   promises.push(contract.getScores(gameId));
+  promises.push(contract.getTurn(gameId));
   promises.push(contract.isGameOver(gameId));
   promises.push(contract.isOvertime(gameId));
   promises.push(contract.isLastTurn(gameId));
@@ -288,41 +304,52 @@ export const getHistoricTurn =
   async (gameId: BigNumberish, turnId: BigNumberish) => {
     const contract = getContract(chain, provider);
     //list all events of gameId that ended turnId.
-    const events = contract.filters.TurnEnded(gameId, turnId);
-    const Proposalevents = contract.filters.ProposalSubmitted(gameId);
+    const filterTurnEnded = contract.filters.TurnEnded(gameId, turnId);
+    const turnEndedEvents = await contract.queryFilter(
+      filterTurnEnded,
+      0,
+      "latest"
+    );
+    // const Proposalevents = contract.filters.ProposalSubmitted(gameId);
     //There shall be only one such event
-    if (!events?.topics?.length || events?.topics?.length == 0) {
+    if (turnEndedEvents.length !== 1) {
+      console.error(
+        "getHistoricTurn",
+        gameId,
+        turnId,
+        "failed:",
+        turnEndedEvents.length
+      );
       const err = new ApiError("Game not found", { status: 404 });
       throw err;
     } else {
-      const endTurnEvent = events?.topics[0];
-      const players = endTurnEvent[2];
-      const scores = endTurnEvent[3];
-      const turnSalt = endTurnEvent[4];
-      const voters = endTurnEvent[5] as any as string[];
-      const votesRevealed = endTurnEvent[6] as any as string[];
+      const logs = turnEndedEvents.map((event) => {
+        return contract.interface.parseLog(event);
+      });
 
-      return { players, scores, turnSalt, voters, votesRevealed };
+      return { ...logs[0] };
     }
   };
 
-export const getPreviousTurnStats =
-  (chain: SupportedChains, provider: ethers.providers.Web3Provider) =>
-  async (gameId: BigNumberish) => {
-    const contract = getContract(chain, provider);
-    const currentTurn = await contract.getTurn(gameId);
-    if (currentTurn.gt(1)) {
-      return await getHistoricTurn(chain, provider)(gameId, currentTurn.sub(1));
-    } else {
-      return {
-        players: "N/A",
-        scores: "N/A",
-        turnSalt: "N/A",
-        voters: ["N/A"],
-        votesRevealed: ["N/A"],
-      };
-    }
-  };
+export const getPreviousTurnStats = async (
+  chain: SupportedChains,
+  provider: ethers.providers.Web3Provider,
+  gameId: BigNumberish
+) => {
+  const contract = getContract(chain, provider);
+  const currentTurn = await contract.getTurn(gameId);
+  if (currentTurn.gt(1)) {
+    return getHistoricTurn(chain, provider)(gameId, currentTurn.sub(1));
+  } else {
+    return {
+      players: "N/A",
+      scores: "N/A",
+      turnSalt: "N/A",
+      voters: ["N/A"],
+      votesRevealed: ["N/A"],
+    };
+  }
+};
 
 export const getVoting =
   (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
