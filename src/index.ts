@@ -1,6 +1,8 @@
 import { LibCoinVending } from "vote4best-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/BestOfDiamond";
-import { RankToken, BestOfDiamond } from "vote4best-contracts/types";
+import { RankToken, BestOfDiamond, Agenda } from "vote4best-contracts/types";
 import { BigNumberish, Bytes, BytesLike, ethers, Wallet } from "ethers";
+import { JsonFragment } from "@ethersproject/abi";
+
 export type SupportedChains =
   | "anvil"
   | "localhost"
@@ -22,8 +24,20 @@ export const chainIds = {
   anvil: 97113,
 };
 
-export const getArtifact = (chain: string) => {
+export const getArtifact = (
+  chain: string
+): { abi: JsonFragment[]; address: string } => {
   const deployment = require(`vote4best-contracts/deployments/${chain}/BestOfGame.json`);
+  const chainId = chainIds[chain];
+  const artifact = { chainId, ...deployment };
+  if (!artifact) throw new Error("Contract deployment not found");
+  return artifact;
+};
+
+const getRankArtifact = (
+  chain: string
+): { abi: JsonFragment[]; address: string } => {
+  const deployment = require(`vote4best-contracts/deployments/${chain}/RankToken.json`);
   const chainId = chainIds[chain];
   // console.debug("deployments", deployments);
   console.debug("chainId", chainId);
@@ -32,8 +46,10 @@ export const getArtifact = (chain: string) => {
   return artifact;
 };
 
-const getRankArtifact = (chain: string) => {
-  const deployment = require(`vote4best-contracts/deployments/${chain}/RankToken.json`);
+const getAgendaArtifact = (
+  chain: string
+): { abi: JsonFragment[]; address: string } => {
+  const deployment = require(`vote4best-contracts/deployments/${chain}/Agenda.json`);
   const chainId = chainIds[chain];
   // console.debug("deployments", deployments);
   console.debug("chainId", chainId);
@@ -54,6 +70,33 @@ export const getContract = (
     provider
   ) as BestOfDiamond;
 };
+
+export const getRankTokenContract = (
+  chain: SupportedChains,
+  provider: ethers.providers.Web3Provider | ethers.Signer
+) => {
+  const artifact = getRankArtifact(chain);
+  const contract = new ethers.Contract(
+    artifact.address,
+    artifact.abi,
+    provider
+  ) as RankToken;
+  return contract;
+};
+
+export const getAgendaTokenContract = (
+  chain: SupportedChains,
+  provider: ethers.providers.Web3Provider | ethers.Signer
+) => {
+  const artifact = getAgendaArtifact(chain);
+  const contract = new ethers.Contract(
+    artifact.address,
+    artifact.abi,
+    provider
+  ) as Agenda;
+  return contract;
+};
+
 export const getContractState = async (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider
@@ -75,11 +118,11 @@ export const getRankTokenURI = async (
 ) => {
   const artifact = getRankArtifact(chain);
   const contract = new ethers.Contract(
-    artifact.contractAddress,
+    artifact.address,
     artifact.abi,
     provider
   ) as RankToken;
-  const retval = await contract.uri("0");
+  const retval = await contract.contractURI();
   return retval;
 };
 
@@ -88,7 +131,7 @@ export const getRankTokenBalance =
   async (tokenId: string, account: string) => {
     const artifact = getRankArtifact(chain);
     const contract = new ethers.Contract(
-      artifact.contractAddress,
+      artifact.address,
       artifact.abi,
       provider
     ) as RankToken;
@@ -198,25 +241,36 @@ export const getGameState = async (
   });
 };
 
+const approveTokensIfNeeded = async (
+  value: BigNumberish,
+  chain: SupportedChains,
+  signer: ethers.providers.JsonRpcSigner
+) => {
+  if (ethers.BigNumber.from(value).gt(0)) {
+    return getAgendaTokenContract(chain, signer)
+      .increaseAllowance(getArtifact(chain).address, value)
+      .then((tx) => tx.wait(1));
+  } else return 0;
+};
+
 export const createGame =
   (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
   async (gameMaster: string, gameRank: string, gameId?: BigNumberish) => {
     const contract = getContract(chain, signer);
-    const reqs = await contract.getContractState();
-
-    const value = reqs.BestOfState.gamePrice;
-    if (gameId) {
-      return await contract["createGame(address,uint256,uint256)"](
-        gameMaster,
-        gameId,
-        gameRank
-      );
-    } else {
-      return await contract["createGame(address,uint256)"](
-        gameMaster,
-        gameRank
-      );
-    }
+    return contract.getContractState().then((reqs) => {
+      const value = reqs.BestOfState.gamePrice;
+      approveTokensIfNeeded(value, chain, signer).then(() => {
+        if (gameId) {
+          return contract["createGame(address,uint256,uint256)"](
+            gameMaster,
+            gameId,
+            gameRank
+          );
+        } else {
+          return contract["createGame(address,uint256)"](gameMaster, gameRank);
+        }
+      });
+    });
   };
 
 export const joinGame =
@@ -415,6 +469,63 @@ export const getOngoingProposals = async (
   const event = contract.interface.parseLog(TurnEndedEvents[0]);
   console.log("getOngoingProposals", event);
   return event.args.newProposals;
+};
+
+export const getRegistrationDeadline = async (
+  chainName: SupportedChains,
+  provider: ethers.providers.Web3Provider,
+  gameId: BigNumberish,
+  timeToJoin?: number
+) => {
+  const contract = getContract(chainName, provider);
+  const filter = contract.filters.RegistrationOpen(gameId);
+  return contract.queryFilter(filter, 0, "latest").then((events) =>
+    events[0].getBlock().then(async (block) => {
+      if (timeToJoin) return block.timestamp + timeToJoin;
+      else
+        return contract
+          .getContractState()
+          .then((cs) => block.timestamp + cs.TBGSEttings.timeToJoin.toNumber());
+    })
+  );
+};
+
+const resolveTurnDeadline = async (
+  block: ethers.providers.Block,
+  timePerTurn: number,
+  contract: BestOfDiamond
+) => {
+  if (timePerTurn) return block.timestamp + timePerTurn;
+  return contract
+    .getContractState()
+    .then((cs) => cs.TBGSEttings.timePerTurn.toNumber() + block.timestamp);
+};
+
+export const getTurnDeadline = async (
+  chainName: SupportedChains,
+  provider: ethers.providers.Web3Provider,
+  gameId: BigNumberish,
+  timePerTurn?: number
+) => {
+  const contract = getContract(chainName, provider);
+  return contract.getTurn(gameId).then((ct) => {
+    if (ct.eq(0)) return 0;
+    if (ct.eq(1)) {
+      const filter = contract.filters.GameStarted(gameId);
+      contract.queryFilter(filter, 0, "latest").then((evts) => {
+        evts[0]
+          .getBlock()
+          .then((block) => resolveTurnDeadline(block, timePerTurn, contract));
+      });
+    } else {
+      const filter = contract.filters.TurnEnded(gameId, ct);
+      contract.queryFilter(filter, 0, "latest").then((evts) => {
+        evts[0]
+          .getBlock()
+          .then((block) => resolveTurnDeadline(block, timePerTurn, contract));
+      });
+    }
+  });
 };
 
 export class Player {

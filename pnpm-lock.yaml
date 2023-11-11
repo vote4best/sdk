@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@ethersproject/abi':
+    specifier: ^5.7.0
+    version: 5.7.0
   '@peersky/eth-auth':
     specifier: ^2.0.0
     version: 2.1.1

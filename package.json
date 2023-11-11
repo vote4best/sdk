@@ -31,6 +31,7 @@
     "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist/.changeset && cd dist && pnpm changeset publish"
   },
   "dependencies": {
+    "@ethersproject/abi": "^5.7.0",
     "@peersky/eth-auth": "^2.0.0",
     "crypto-js": "^4.1.1",
     "ethers": "^5.0.0",
