@@ -149,13 +149,8 @@ export const getProposalScoresList = async (
   const _from = from ?? 1;
   const _to = to ?? (await contract.getTurn(gameId)).toNumber();
   console.log("getProposalScore result", gameId, _from, _to);
-  const promises = [];
-  for (let i = _from; i < _to; i++) {
-    promises.push(getHistoricTurn(chain, provider)(gameId, i));
-  }
-  const result = await Promise.all(promises);
-  console.log("getProposalScore result", result);
-  return result;
+  const proposalScoreFilter = contract.filters.ProposalScore(gameId);
+  return contract.queryFilter(proposalScoreFilter, 0, "latest");
 };
 
 export const getCurrentTurn = async (
@@ -257,20 +252,24 @@ export const createGame =
   (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
   async (gameMaster: string, gameRank: string, gameId?: BigNumberish) => {
     const contract = getContract(chain, signer);
-    return contract.getContractState().then((reqs) => {
-      const value = reqs.BestOfState.gamePrice;
-      approveTokensIfNeeded(value, chain, signer).then(() => {
-        if (gameId) {
-          return contract["createGame(address,uint256,uint256)"](
-            gameMaster,
-            gameId,
-            gameRank
-          );
-        } else {
-          return contract["createGame(address,uint256)"](gameMaster, gameRank);
+    return contract.getContractState().then(async (reqs) =>
+      approveTokensIfNeeded(reqs.BestOfState.gamePrice, chain, signer).then(
+        () => {
+          if (gameId) {
+            return contract["createGame(address,uint256,uint256)"](
+              gameMaster,
+              gameId,
+              gameRank
+            );
+          } else {
+            return contract["createGame(address,uint256)"](
+              gameMaster,
+              gameRank
+            );
+          }
         }
-      });
-    });
+      )
+    );
   };
 
 export const joinGame =
@@ -364,7 +363,6 @@ export const getHistoricTurn =
       0,
       "latest"
     );
-    // const Proposalevents = contract.filters.ProposalSubmitted(gameId);
     //There shall be only one such event
     if (turnEndedEvents.length !== 1) {
       console.error(
@@ -376,13 +374,8 @@ export const getHistoricTurn =
       );
       const err = new ApiError("Game not found", { status: 404 });
       throw err;
-    } else {
-      const logs = turnEndedEvents.map((event) => {
-        return contract.interface.parseLog(event);
-      });
-
-      return { ...logs[0] };
     }
+    return { ...turnEndedEvents[0] };
   };
 
 export const getPreviousTurnStats = async (
@@ -408,17 +401,13 @@ export const getPreviousTurnStats = async (
 export const getVoting =
   (chain: SupportedChains, signer: ethers.providers.JsonRpcSigner) =>
   async (gameId: BigNumberish, turnId: BigNumberish) => {
+    console.log("getVoting", gameId, turnId);
     const contract = getContract(chain, signer);
+    const filterVoteEvent = contract.filters.VoteSubmitted(gameId, turnId);
     const filterProposalEvent = contract.filters.ProposalSubmitted(
       gameId,
       turnId,
       null,
-      null,
-      null
-    );
-    const filterVoteEvent = contract.filters.VoteSubmitted(
-      gameId,
-      turnId,
       null,
       null
     );
@@ -430,7 +419,20 @@ export const getVoting =
     const voteEvents = await contract.queryFilter(filterVoteEvent, 0, "latest");
     let proposals = [];
     let playersVoted = [];
-    console.log("voteEvents", proposalEvents);
+    console.log("voteEvents", voteEvents, "proposalEvents", proposalEvents);
+    const fixedProposalArgs = proposalEvents.map((event) => {
+      return {
+        ...event,
+        args: {
+          gameId: event.args[0],
+          turn: event.args[1],
+          proposer: event.args[2],
+          commitmentHash: event.args[3],
+          proposalEncryptedByGM: event.args[4],
+        },
+      };
+    });
+
     // for (const filterProposalEvent in filterProposalEvents.topics) {
     //   if (filterProposalEvent)
     //     proposals.push(contract.interface.parseLog({ log: proposalEvent }));
@@ -438,7 +440,7 @@ export const getVoting =
     // for (const voteEvent in voteEvents) {
     //   playersVoted.push(voteEvent[2]);
     // }
-    return { voteEvents, proposalEvents };
+    return { voteEvents, proposalEvents: fixedProposalArgs };
   };
 
 export const getOngoingVoting =
@@ -450,9 +452,9 @@ export const getOngoingVoting =
     signer: ethers.providers.JsonRpcSigner;
   }) =>
   async (gameId: BigNumberish) => {
-    const contract = getContract(chain, signer);
-    const currentTurn = await contract.getTurn(gameId);
-    return getVoting(chain, signer)(gameId, currentTurn);
+    return getContract(chain, signer)
+      .getTurn(gameId)
+      .then((turn) => getVoting(chain, signer)(gameId, turn));
   };
 
 export const getOngoingProposals = async (
@@ -492,8 +494,8 @@ export const getRegistrationDeadline = async (
 
 const resolveTurnDeadline = async (
   block: ethers.providers.Block,
-  timePerTurn: number,
-  contract: BestOfDiamond
+  contract: BestOfDiamond,
+  timePerTurn?: number
 ) => {
   if (timePerTurn) return block.timestamp + timePerTurn;
   return contract
@@ -508,23 +510,19 @@ export const getTurnDeadline = async (
   timePerTurn?: number
 ) => {
   const contract = getContract(chainName, provider);
-  return contract.getTurn(gameId).then((ct) => {
+
+  return contract.getTurn(gameId).then(async (ct) => {
     if (ct.eq(0)) return 0;
-    if (ct.eq(1)) {
-      const filter = contract.filters.GameStarted(gameId);
-      contract.queryFilter(filter, 0, "latest").then((evts) => {
+    const filter = ct.eq(1)
+      ? contract.filters.GameStarted(gameId)
+      : contract.filters.TurnEnded(gameId, ct);
+    return contract
+      .queryFilter(filter, 0, "latest")
+      .then((evts) =>
         evts[0]
           .getBlock()
-          .then((block) => resolveTurnDeadline(block, timePerTurn, contract));
-      });
-    } else {
-      const filter = contract.filters.TurnEnded(gameId, ct);
-      contract.queryFilter(filter, 0, "latest").then((evts) => {
-        evts[0]
-          .getBlock()
-          .then((block) => resolveTurnDeadline(block, timePerTurn, contract));
-      });
-    }
+          .then((block) => resolveTurnDeadline(block, contract, timePerTurn))
+      );
   });
 };
 
