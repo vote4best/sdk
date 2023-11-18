@@ -497,6 +497,7 @@ const resolveTurnDeadline = async (
   contract: BestOfDiamond,
   timePerTurn?: number
 ) => {
+  console.log("getTurnDeadline getTurnDeadline", block, contract, timePerTurn);
   if (timePerTurn) return block.timestamp + timePerTurn;
   return contract
     .getContractState()
@@ -515,13 +516,15 @@ export const getTurnDeadline = async (
     if (ct.eq(0)) return 0;
     const filter = ct.eq(1)
       ? contract.filters.GameStarted(gameId)
-      : contract.filters.TurnEnded(gameId, ct);
+      : contract.filters.TurnEnded(gameId, ct.sub(1));
     return contract
       .queryFilter(filter, 0, "latest")
-      .then((evts) =>
+      .then(async (evts) =>
         evts[0]
           .getBlock()
-          .then((block) => resolveTurnDeadline(block, contract, timePerTurn))
+          .then(async (block) =>
+            resolveTurnDeadline(block, contract, timePerTurn)
+          )
       );
   });
 };
