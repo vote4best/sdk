@@ -1,6 +1,6 @@
 {
-  "name": "vote4best-js",
-  "description": "client library",
+  "name": "rankify-js",
+  "description": "rankify.it client library",
   "version": "0.1.0",
   "private": "true",
   "type": "commonjs",
@@ -9,10 +9,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/vote4best/sdk/main/README.md",
+  "homepage": "https://github.com/rankify/sdk/main/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vote4best/sdk.git",
+    "url": "https://github.com/rankify/sdk.git",
     "directory": "."
   },
   "exports": {
@@ -36,7 +36,7 @@
     "crypto-js": "^4.1.1",
     "ethers": "^5.0.0",
     "typescript": "^5.0.4",
-    "vote4best-contracts": "file:../contracts"
+    "rankify-contracts": "file:../contracts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.2",

@@ -17,12 +17,12 @@ dependencies:
   ethers:
     specifier: ^5.0.0
     version: 5.7.2
+  rankify-contracts:
+    specifier: file:../contracts
+    version: file:../contracts(hardhat@2.18.3)
   typescript:
     specifier: ^5.0.4
     version: 5.2.2
-  vote4best-contracts:
-    specifier: file:../contracts
-    version: file:../contracts(hardhat@2.18.3)
 
 devDependencies:
   '@changesets/cli':
@@ -5542,7 +5542,7 @@ packages:
   file:../contracts(hardhat@2.18.3):
     resolution: {directory: ../contracts, type: directory}
     id: file:../contracts
-    name: vote4best-contracts
+    name: rankify-contracts
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@openzeppelin/contracts': 4.9.3

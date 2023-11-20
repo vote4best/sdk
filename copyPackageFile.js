@@ -6,10 +6,10 @@ const copyPackgeFile = () => {
   delete packageJson.private;
   console.log("stage is", stage);
   if (stage === "dev") {
-    packageJson.dependencies["vote4best-contracts"] = "file:../../contracts";
+    packageJson.dependencies["rankify-contracts"] = "file:../../contracts";
   }
   if (stage === "prod") {
-    packageJson.dependencies["vote4best-contracts"] = "^0.1.0";
+    packageJson.dependencies["rankify-contracts"] = "^0.1.0";
   }
   const tsconfig = require("./tsconfig.json");
   writeFileSync(

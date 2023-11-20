@@ -1,5 +1,9 @@
-import { LibCoinVending } from "vote4best-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/BestOfDiamond";
-import { RankToken, BestOfDiamond, Agenda } from "vote4best-contracts/types";
+import { LibCoinVending } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
+import {
+  RankToken,
+  RankifyDiamondInstance,
+  Rankify,
+} from "rankify-contracts/types";
 import { BigNumberish, Bytes, BytesLike, ethers, Wallet } from "ethers";
 import { JsonFragment } from "@ethersproject/abi";
 
@@ -27,7 +31,7 @@ export const chainIds = {
 export const getArtifact = (
   chain: string
 ): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`vote4best-contracts/deployments/${chain}/BestOfGame.json`);
+  const deployment = require(`rankify-contracts/deployments/${chain}/RankifyInstance.json`);
   const chainId = chainIds[chain];
   const artifact = { chainId, ...deployment };
   if (!artifact) throw new Error("Contract deployment not found");
@@ -37,7 +41,7 @@ export const getArtifact = (
 const getRankArtifact = (
   chain: string
 ): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`vote4best-contracts/deployments/${chain}/RankToken.json`);
+  const deployment = require(`rankify-contracts/deployments/${chain}/RankToken.json`);
   const chainId = chainIds[chain];
   // console.debug("deployments", deployments);
   console.debug("chainId", chainId);
@@ -46,10 +50,10 @@ const getRankArtifact = (
   return artifact;
 };
 
-const getAgendaArtifact = (
+const getRankifyArtifact = (
   chain: string
 ): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`vote4best-contracts/deployments/${chain}/Agenda.json`);
+  const deployment = require(`rankify-contracts/deployments/${chain}/Rankify.json`);
   const chainId = chainIds[chain];
   // console.debug("deployments", deployments);
   console.debug("chainId", chainId);
@@ -68,7 +72,7 @@ export const getContract = (
     artifact.address,
     artifact.abi,
     provider
-  ) as BestOfDiamond;
+  ) as RankifyDiamondInstance;
 };
 
 export const getRankTokenContract = (
@@ -84,16 +88,16 @@ export const getRankTokenContract = (
   return contract;
 };
 
-export const getAgendaTokenContract = (
+export const getRankifyTokenContract = (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider | ethers.Signer
 ) => {
-  const artifact = getAgendaArtifact(chain);
+  const artifact = getRankifyArtifact(chain);
   const contract = new ethers.Contract(
     artifact.address,
     artifact.abi,
     provider
-  ) as Agenda;
+  ) as Rankify;
   return contract;
 };
 
@@ -242,7 +246,7 @@ const approveTokensIfNeeded = async (
   signer: ethers.providers.JsonRpcSigner
 ) => {
   if (ethers.BigNumber.from(value).gt(0)) {
-    return getAgendaTokenContract(chain, signer)
+    return getRankifyTokenContract(chain, signer)
       .increaseAllowance(getArtifact(chain).address, value)
       .then((tx) => tx.wait(1));
   } else return 0;
@@ -494,7 +498,7 @@ export const getRegistrationDeadline = async (
 
 const resolveTurnDeadline = async (
   block: ethers.providers.Block,
-  contract: BestOfDiamond,
+  contract: RankifyDiamondInstance,
   timePerTurn?: number
 ) => {
   console.log("getTurnDeadline getTurnDeadline", block, contract, timePerTurn);
@@ -556,35 +560,3 @@ export class Player {
     this.verifyingContract = verifyingContract;
   }
 }
-// export const signProposalMessage =
-//   (chain: SupportedChains, proposer: ethers.providers.JsonRpcSigner) =>
-//   async ({
-//     proposal,
-//     turn,
-//     gameId,
-//     salt,
-//   }: {
-//     proposal: string;
-//     turn: string;
-//     gameId: string;
-//     salt: string;
-//   }) => {
-//     // ProposalMessage
-//     const message: ProposalMessage = {
-//       proposal: proposal,
-//       turn: turn,
-//       gameId: gameId,
-//       salt: salt,
-//     };
-//     const artifact = getArtifact(chain);
-//     const domain = {
-//       name: artifact.name,
-//       version: artifact.version,
-//       chainId: artifact.chainId,
-//       verifyingContract: artifact.contractAddress,
-//     };
-//     const s = await proposer._signTypedData(domain, ProposalTypes, {
-//       ...message,
-//     });
-//     return s;
-//   };
