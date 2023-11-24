@@ -23,12 +23,14 @@
   },
   "scripts": {
     "build-esm": "tsc --project tsconfig.esm.json",
-    "build-all": "yarn run build-esm && yarn run build-commonjs",
+    "build-all": "yarn run build-commonjs && yarn run build-esm",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
     "build-dev": "yarn build-all && node ./copyPackageFile.js dev",
     "build": "yarn build-all && node ./copyPackageFile.js prod",
-    "postbuild": "cp README.md dist && prettier --write \"dist/**/*.{ts,js,json}\"",
-    "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist/.changeset && cd dist && pnpm changeset publish"
+    "postbuild": "cp README.md dist && cp -r .changeset ./dist/.changeset && prettier --write \"dist/**/*.{ts,js,json}\" &&  ln -s ./node_modules ./dist/node_modules",
+    "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist/.changeset && cd dist && pnpm changeset publish",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
@@ -36,6 +38,7 @@
     "crypto-js": "^4.1.1",
     "ethers": "^5.0.0",
     "typescript": "^5.0.4",
+    "lodash": "^4.17.21",
     "rankify-contracts": "file:../contracts"
   },
   "devDependencies": {

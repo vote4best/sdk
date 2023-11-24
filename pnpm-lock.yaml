@@ -17,6 +17,9 @@ dependencies:
   ethers:
     specifier: ^5.0.0
     version: 5.7.2
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   rankify-contracts:
     specifier: file:../contracts
     version: file:../contracts(hardhat@2.18.3)
