@@ -27,7 +27,7 @@
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
     "build-dev": "yarn build-all && node ./copyPackageFile.js dev",
     "build": "yarn build-all && node ./copyPackageFile.js prod",
-    "postbuild": "cp README.md dist && cp -r .changeset ./dist/.changeset && prettier --write \"dist/**/*.{ts,js,json}\" &&  cd dist && pnpm install",
+    "postbuild": "cp README.md dist && cp -r .changeset ./dist/.changeset && prettier --write \"dist/**/*.{ts,js,json}\" &&  cd ./dist && pnpm install",
     "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist/.changeset && cd dist && pnpm changeset publish",
     "version": "changeset version",
     "release": "changeset publish"
