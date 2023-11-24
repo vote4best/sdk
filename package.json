@@ -30,7 +30,7 @@
     "postbuild": "cp README.md dist && cp -r .changeset ./dist/.changeset && prettier --write \"dist/**/*.{ts,js,json}\" &&  cd ./dist && pnpm install",
     "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist && cd dist && pnpm changeset publish",
     "version": "changeset version",
-    "release": "changeset publish"
+    "release": "pnpm build && cd ./dist && changeset publish"
   },
   "dependencies": {
     "@ethersproject/abi": "^5.7.0",
