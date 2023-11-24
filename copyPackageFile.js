@@ -8,9 +8,6 @@ const copyPackgeFile = () => {
   if (stage === "dev") {
     packageJson.dependencies["rankify-contracts"] = "file:../../contracts";
   }
-  if (stage === "prod") {
-    packageJson.dependencies["rankify-contracts"] = "^0.1.0";
-  }
   const tsconfig = require("./tsconfig.json");
   writeFileSync(
     path.join(tsconfig.compilerOptions.outDir, "package.json"),
