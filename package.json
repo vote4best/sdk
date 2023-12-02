@@ -1,7 +1,7 @@
 {
   "name": "rankify-js",
   "description": "rankify.it client library",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": "true",
   "type": "commonjs",
   "main": "./lib.commonjs/index.js",
