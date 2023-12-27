@@ -177,7 +177,6 @@ export const getContractState = async (
   const cs = await contract
     .getContractState()
     .then((x) => deepArrayToObject(x));
-  console.log("cscscs", cs);
   return cs;
 };
 
