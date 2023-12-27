@@ -60,8 +60,6 @@ const getRankArtifact = (
 ): { abi: JsonFragment[]; address: string } => {
   const deployment = require(`rankify-contracts/deployments/${chain}/RankToken.json`);
   const chainId = chainIds[chain];
-  // console.debug("deployments", deployments);
-  console.debug("chainId", chainId);
   const artifact = { chainId, ...deployment };
   if (!artifact) throw new Error("Contract deployment not found");
   return artifact;
@@ -78,8 +76,6 @@ const getRankifyArtifact = (
 ): { abi: JsonFragment[]; address: string } => {
   const deployment = require(`rankify-contracts/deployments/${chain}/Rankify.json`);
   const chainId = chainIds[chain];
-  // console.debug("deployments", deployments);
-  console.debug("chainId", chainId);
   const artifact = { chainId, ...deployment };
   if (!artifact) throw new Error("Contract deployment not found");
   return artifact;
@@ -234,10 +230,8 @@ export const getProposalScoresList = async (
   const contract = getContract(chain, provider);
   const _from = from ?? 1;
   const _to = to ?? (await contract.getTurn(gameId)).toNumber();
-  console.log("getProposalScore result", gameId, _from, _to);
   const proposalScoreFilter = contract.filters.ProposalScore(gameId);
   const res = await contract.queryFilter(proposalScoreFilter, 0, "latest");
-  console.log("resres", res);
   return deepArrayToObject(res);
 };
 
@@ -568,7 +562,6 @@ export const getVoting =
   async (gameId: BigNumberish, turnId: BigNumberish) => {
     if (!gameId) throw new Error("gameId not set");
     if (!turnId) throw new Error("turnId not set");
-    console.log("getVoting", gameId, turnId);
     const contract = getContract(chain, signer);
     const filterVoteEvent = contract.filters.VoteSubmitted(gameId, turnId);
     const filterProposalEvent = contract.filters.ProposalSubmitted(
@@ -584,7 +577,6 @@ export const getVoting =
       "latest"
     );
     const voteEvents = await contract.queryFilter(filterVoteEvent, 0, "latest");
-    console.log("voteEvents", voteEvents, "proposalEvents", proposalEvents);
     const fixedProposalArgs = proposalEvents.map((event) => {
       return {
         ...event,
@@ -645,14 +637,11 @@ export const getOngoingProposals = async (
 ) => {
   const contract = getContract(chainName, provider);
   const currentTurn = await contract.getTurn(gameId);
-  console.debug("currentTurn", currentTurn.toString());
   //list all events of gameId that ended turnId.
   const filter = contract.filters.TurnEnded(gameId, currentTurn.sub(1));
   const TurnEndedEvents = await contract.queryFilter(filter, 0, "latest");
   const event = contract.interface.parseLog(TurnEndedEvents[0]);
-  console.debug("aaaaaa", event);
   const dc = deepArrayToObject(event);
-  console.debug("aaaaaa", event, dc);
   return dc.args.newProposals;
 };
 
@@ -697,7 +686,6 @@ const resolveTurnDeadline = async (
   contract: RankifyDiamondInstance,
   timePerTurn?: number
 ) => {
-  console.log("getTurnDeadline getTurnDeadline", block, contract, timePerTurn);
   if (timePerTurn) return block.timestamp + timePerTurn;
   return contract
     .getContractState()
