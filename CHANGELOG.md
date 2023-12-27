@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.1.2
+
+### Patch Changes
+
+- [`9b50638`](https://github.com/rankify-it/sdk/commit/9b506380000360a551d0d44d89a1f335ad28db68) Thanks [@peersky](https://github.com/peersky)! - handle deep copy for cases when returned value is string
+
 ## 0.1.1
 
 ### Patch Changes
