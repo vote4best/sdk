@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.1.4
+
+### Patch Changes
+
+- [`4348f21`](https://github.com/rankify-it/sdk/commit/4348f218e891b4c8d674e4a145de8f1ec481f72f) Thanks [@peersky](https://github.com/peersky)! - remove console logs
+
 ## 0.1.3
 
 ### Patch Changes
