@@ -150,7 +150,6 @@ export const getRankifyTokenContract = (
  * @returns The converted object.
  */
 const deepArrayToObject = <T>(object: T) => {
-  console.log("deepArrayToObject", typeof object);
   if (typeof object == "string") return object;
   let result = Array.isArray(object) ? [] : {};
   Object.keys(object).forEach((key) => {
