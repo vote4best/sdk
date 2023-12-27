@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.1.3
+
+### Patch Changes
+
+- [`e86bcdb`](https://github.com/rankify-it/sdk/commit/e86bcdb7af0a68b694efeb8c7c92673cbe32c66d) Thanks [@peersky](https://github.com/peersky)! - removed console log
+
 ## 0.1.2
 
 ### Patch Changes
