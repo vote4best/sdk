@@ -38,7 +38,7 @@
     "crypto-js": "^4.1.1",
     "ethers": "^5.0.0",
     "lodash": "^4.17.21",
-    "rankify-contracts": "^0.3.0",
+    "rankify-contracts": "^0.5.0",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
