@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.2.0
+
+### Minor Changes
+
+- [`408e9f7`](https://github.com/rankify-it/sdk/commit/408e9f75d5f6a718ce7614adf225447d0c060c8b) Thanks [@peersky](https://github.com/peersky)! - 0.5.0 contract version support
+
 ## 0.1.4
 
 ### Patch Changes
