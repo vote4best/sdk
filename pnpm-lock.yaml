@@ -21,8 +21,8 @@ dependencies:
     specifier: ^4.17.21
     version: 4.17.21
   rankify-contracts:
-    specifier: ^0.5.0
-    version: 0.5.0(hardhat@2.19.1)
+    specifier: ^0.6.0
+    version: 0.6.0(hardhat@2.19.1)
   typescript:
     specifier: ^5.0.4
     version: 5.3.2
@@ -4471,8 +4471,8 @@ packages:
       safe-buffer: 5.2.1
     dev: false
 
-  /rankify-contracts@0.5.0(hardhat@2.19.1):
-    resolution: {integrity: sha512-58qoBOwKAAQQTAkZdG0MjinPobdjh+Oqn2vF8ePhy3Uosv9KlKUC1ZxVao/gJtpnV2LC/AZE66k2V7elt10x2g==}
+  /rankify-contracts@0.6.0(hardhat@2.19.1):
+    resolution: {integrity: sha512-+4PZQmbYV6y2Q7vnCoDFiVkryp71INOfIfWna/UlTnnPXGfOd9MlNolzv5EUdqT/axiLovx1q/D++h0QIGaaNw==}
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@openzeppelin/contracts': 4.9.3
