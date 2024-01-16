@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.3.0
+
+### Minor Changes
+
+- [`0dc0c71`](https://github.com/rankify-it/sdk/commit/0dc0c71908a382c1b21405cea509d2edeef0d6ba) Thanks [@peersky](https://github.com/peersky)! - bump contracts version
+
 ## 0.2.0
 
 ### Minor Changes
