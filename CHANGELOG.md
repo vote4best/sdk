@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.4.0
+
+### Minor Changes
+
+- [`d0966ee`](https://github.com/rankify-it/sdk/commit/d0966eed7261d8332b0958366e076bcedd515f7a) Thanks [@peersky](https://github.com/peersky)! - adding multipass client library
+
 ## 0.3.0
 
 ### Minor Changes
