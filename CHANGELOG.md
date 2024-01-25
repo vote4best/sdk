@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.5.0
+
+### Minor Changes
+
+- [`3523d14`](https://github.com/rankify-it/sdk/commit/3523d142485a1ef14cc4ba27cff43a1679a18f3e) Thanks [@peersky](https://github.com/peersky)! - bump contracts version to support deployments of multipass
+
 ## 0.4.0
 
 ### Minor Changes
