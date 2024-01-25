@@ -3,6 +3,8 @@
  * It includes functions for interacting with smart contracts on different chains,
  * retrieving game state and proposal scores, and creating games.
  */
+
+export * from "./multipass";
 import { LibCoinVending } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
 import {
   RankToken,

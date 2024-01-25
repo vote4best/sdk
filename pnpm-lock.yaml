@@ -8,6 +8,9 @@ dependencies:
   '@ethersproject/abi':
     specifier: ^5.7.0
     version: 5.7.0
+  '@nomiclabs/hardhat-ethers':
+    specifier: ^2.2.3
+    version: 2.2.3(ethers@5.7.2)(hardhat@2.19.1)
   '@peersky/eth-auth':
     specifier: ^2.0.0
     version: 2.1.1
@@ -21,8 +24,8 @@ dependencies:
     specifier: ^4.17.21
     version: 4.17.21
   rankify-contracts:
-    specifier: ^0.6.0
-    version: 0.6.0(hardhat@2.19.1)
+    specifier: ^0.7.1
+    version: 0.7.1(hardhat@2.19.1)
   typescript:
     specifier: ^5.0.4
     version: 5.3.2
@@ -1069,6 +1072,16 @@ packages:
       '@nomicfoundation/solidity-analyzer-win32-arm64-msvc': 0.1.1
       '@nomicfoundation/solidity-analyzer-win32-ia32-msvc': 0.1.1
       '@nomicfoundation/solidity-analyzer-win32-x64-msvc': 0.1.1
+    dev: false
+
+  /@nomiclabs/hardhat-ethers@2.2.3(ethers@5.7.2)(hardhat@2.19.1):
+    resolution: {integrity: sha512-YhzPdzb612X591FOe68q+qXVXGG2ANZRvDo0RRUtimev85rCrAlv/TLMEZw5c+kq9AbzocLTVX/h2jVIFPL9Xg==}
+    peerDependencies:
+      ethers: ^5.0.0
+      hardhat: ^2.0.0
+    dependencies:
+      ethers: 5.7.2
+      hardhat: 2.19.1(typescript@5.3.2)
     dev: false
 
   /@openzeppelin/contracts-upgradeable@4.9.3:
@@ -4471,8 +4484,8 @@ packages:
       safe-buffer: 5.2.1
     dev: false
 
-  /rankify-contracts@0.6.0(hardhat@2.19.1):
-    resolution: {integrity: sha512-+4PZQmbYV6y2Q7vnCoDFiVkryp71INOfIfWna/UlTnnPXGfOd9MlNolzv5EUdqT/axiLovx1q/D++h0QIGaaNw==}
+  /rankify-contracts@0.7.1(hardhat@2.19.1):
+    resolution: {integrity: sha512-L987vYMUYIQZkXS6IVshHhR03Ykb1Mw/6Q8To2UMsA9F7ROSCV5Hofi660Wi5/sWYTTZMkIaSQg7TNbxhL5twQ==}
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@openzeppelin/contracts': 4.9.3

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "declarationMap": true,
-    "importHelpers": true,
+    "importHelpers": false,
     "target": "es2022",
     "module": "CommonJS",
     "lib": ["es2022", "es5"],
