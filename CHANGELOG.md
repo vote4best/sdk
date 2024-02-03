@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.6.0
+
+### Minor Changes
+
+- [`fc118c1`](https://github.com/rankify-it/sdk/commit/fc118c1c521306524e4e1eeed07b890d5505f83b) Thanks [@peersky](https://github.com/peersky)! - make ongoing proposals getter typed and remove deproxifier
+
 ## 0.5.0
 
 ### Minor Changes
