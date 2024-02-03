@@ -5,7 +5,10 @@
  */
 
 export * from "./multipass";
-import { LibCoinVending } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
+import {
+  LibCoinVending,
+  TurnEndedEventObject,
+} from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
 import {
   RankToken,
   RankifyDiamondInstance,
@@ -642,9 +645,9 @@ export const getOngoingProposals = async (
   //list all events of gameId that ended turnId.
   const filter = contract.filters.TurnEnded(gameId, currentTurn.sub(1));
   const TurnEndedEvents = await contract.queryFilter(filter, 0, "latest");
-  const event = contract.interface.parseLog(TurnEndedEvents[0]);
-  const dc = deepArrayToObject(event);
-  return dc.args.newProposals;
+  const args = contract.interface.parseLog(TurnEndedEvents[0])
+    .args as any as TurnEndedEventObject;
+  return args.newProposals;
 };
 
 /**
