@@ -522,7 +522,7 @@ export const getHistoricTurn =
       const err = new ApiError("Game not found", { status: 404 });
       throw err;
     }
-    return { ...turnEndedEvents[0] };
+    return { ...turnEndedEvents[turnEndedEvents.length - 1] };
   };
 
 /**
