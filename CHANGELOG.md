@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.7.0
+
+### Minor Changes
+
+- [#15](https://github.com/rankify-it/sdk/pull/15) [`63df9b7`](https://github.com/rankify-it/sdk/commit/63df9b7f91a1c5de37d3fdf642849fc858c59d88) Thanks [@peersky](https://github.com/peersky)! - updated contracts as dev network migrated to beta
+
 ## 0.6.0
 
 ### Minor Changes
