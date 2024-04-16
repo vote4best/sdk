@@ -3,9 +3,9 @@
   "description": "rankify.it client library",
   "version": "0.6.0",
   "private": "true",
-  "type": "commonjs",
-  "main": "./lib.commonjs/index.js",
-  "module": "./lib.esm/index.js",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "publishConfig": {
     "access": "public"
   },
@@ -17,8 +17,8 @@
   },
   "exports": {
     ".": {
-      "require": "./lib.commonjs/index.js",
-      "default": "./lib.esm/index.js"
+      "require": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "scripts": {
