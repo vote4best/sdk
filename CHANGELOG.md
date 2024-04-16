@@ -1,5 +1,17 @@
 # rankify-js
 
+## 0.7.1
+
+### Patch Changes
+
+- [#17](https://github.com/rankify-it/sdk/pull/17) [`41b92d3`](https://github.com/rankify-it/sdk/commit/41b92d3b768dde3f5fef391087ca1b81dd4b5771) Thanks [@peersky](https://github.com/peersky)! - contracts multipass deployments patch bump
+
+## 0.7.0
+
+### Minor Changes
+
+- [#15](https://github.com/rankify-it/sdk/pull/15) [`63df9b7`](https://github.com/rankify-it/sdk/commit/63df9b7f91a1c5de37d3fdf642849fc858c59d88) Thanks [@peersky](https://github.com/peersky)! - updated contracts as dev network migrated to beta
+
 ## 0.6.0
 
 ### Minor Changes

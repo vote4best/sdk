@@ -1,7 +1,7 @@
 {
   "name": "rankify-js",
   "description": "rankify.it client library",
-  "version": "0.6.0",
+  "version": "0.7.1",
   "private": "true",
   "type": "module",
   "main": "./src/index.ts",
@@ -39,7 +39,7 @@
     "crypto-js": "^4.1.1",
     "ethers": "^5.0.0",
     "lodash": "^4.17.21",
-    "rankify-contracts": "^0.8.0",
+    "rankify-contracts": "^0.9.1",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
