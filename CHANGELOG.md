@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.7.2
+
+### Patch Changes
+
+- [`1ad61b4`](https://github.com/rankify-it/sdk/commit/1ad61b40180efc77dd75a90a807a03395a0fd0a9) Thanks [@peersky](https://github.com/peersky)! - bump contracts lib
+
 ## 0.7.1
 
 ### Patch Changes
