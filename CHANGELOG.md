@@ -1,5 +1,11 @@
 # rankify-js
 
+## 0.7.3
+
+### Patch Changes
+
+- [`924f73c`](https://github.com/rankify-it/sdk/commit/924f73ced5539cd801ecebd0128059b815fe02ef) Thanks [@peersky](https://github.com/peersky)! - build process fixes
+
 ## 0.7.2
 
 ### Patch Changes
