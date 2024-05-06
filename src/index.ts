@@ -3,8 +3,10 @@
  * It includes functions for interacting with smart contracts on different chains,
  * retrieving game state and proposal scores, and creating games.
  */
+import { getArtifact } from "./utils/artifacts";
 
-export * from "./multipass";
+export { getArtifact } from "./utils/artifacts";
+export * from "./utils/multipass";
 import {
   LibCoinVending,
   TurnEndedEventObject,
@@ -14,16 +16,12 @@ import {
   RankifyDiamondInstance,
   Rankify,
 } from "rankify-contracts/types";
-import { BigNumberish, Bytes, BytesLike, ethers, Wallet } from "ethers";
-import { JsonFragment } from "@ethersproject/abi";
-import _ from "lodash";
+import { BigNumberish, ethers } from "ethers";
+
 export type SupportedChains =
   | "anvil"
-  | "localhost"
-  | "mumbai"
-  | "polygon"
-  | "ethereum"
-  | "goerli";
+  | "localhost";
+
 enum gameStatusEnum {
   created = "Game created",
   open = "Registration open",
@@ -33,58 +31,6 @@ enum gameStatusEnum {
   finished = "Finished",
   notFound = "not found",
 }
-
-export const chainIds = {
-  anvil: 97113,
-};
-
-/**
- * Retrieves the artifact for a given chain.
- * @param chain The chain identifier.
- * @returns An object containing the ABI and address of the artifact.
- * @throws Error if the contract deployment is not found.
- */
-export const getArtifact = (
-  chain: string
-): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`rankify-contracts/deployments/${chain}/RankifyInstance.json`);
-  const chainId = chainIds[chain];
-  const artifact = { chainId, ...deployment };
-  if (!artifact) throw new Error("Contract deployment not found");
-  return artifact;
-};
-
-/**
- * Retrieves the rank artifact for a given chain.
- * @param chain The chain identifier.
- * @returns The rank artifact containing the ABI and address.
- * @throws Error if the contract deployment is not found.
- */
-const getRankArtifact = (
-  chain: string
-): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`rankify-contracts/deployments/${chain}/RankToken.json`);
-  const chainId = chainIds[chain];
-  const artifact = { chainId, ...deployment };
-  if (!artifact) throw new Error("Contract deployment not found");
-  return artifact;
-};
-
-/**
- * Retrieves the Rankify artifact for the specified chain.
- * @param chain The chain identifier.
- * @returns The Rankify artifact containing the ABI and address.
- * @throws Error if the contract deployment is not found.
- */
-const getRankifyArtifact = (
-  chain: string
-): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`rankify-contracts/deployments/${chain}/Rankify.json`);
-  const chainId = chainIds[chain];
-  const artifact = { chainId, ...deployment };
-  if (!artifact) throw new Error("Contract deployment not found");
-  return artifact;
-};
 
 /**
  * Retrieves the contract instance for the specified chain using the provided provider.
@@ -96,7 +42,8 @@ export const getContract = (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider | ethers.Signer
 ) => {
-  const artifact = getArtifact(chain);
+  const artifact = getArtifact(chain, 'RankifyInstance');
+
   return new ethers.Contract(
     artifact.address,
     artifact.abi,
@@ -114,7 +61,7 @@ export const getRankTokenContract = (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider | ethers.Signer
 ) => {
-  const artifact = getRankArtifact(chain);
+  const artifact = getArtifact(chain, 'RankToken');
   const contract = new ethers.Contract(
     artifact.address,
     artifact.abi,
@@ -134,7 +81,7 @@ export const getRankifyTokenContract = (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider | ethers.Signer
 ) => {
-  const artifact = getRankifyArtifact(chain);
+  const artifact = getArtifact(chain, 'Rankify');
   const contract = new ethers.Contract(
     artifact.address,
     artifact.abi,
@@ -192,7 +139,7 @@ export const getRankTokenURI = async (
   chain: SupportedChains,
   provider: ethers.providers.Web3Provider
 ) => {
-  const artifact = getRankArtifact(chain);
+  const artifact = getArtifact(chain, 'RankToken');
   const contract = new ethers.Contract(
     artifact.address,
     artifact.abi,
@@ -204,7 +151,7 @@ export const getRankTokenURI = async (
 export const getRankTokenBalance =
   (chain: SupportedChains, provider: ethers.providers.Web3Provider) =>
   async (tokenId: string, account: string) => {
-    const artifact = getRankArtifact(chain);
+    const artifact = getArtifact(chain, 'RankToken');
     const contract = new ethers.Contract(
       artifact.address,
       artifact.abi,
@@ -352,7 +299,7 @@ const approveTokensIfNeeded = async (
 ) => {
   if (ethers.BigNumber.from(value).gt(0)) {
     return getRankifyTokenContract(chain, signer)
-      .increaseAllowance(getArtifact(chain).address, value)
+      .increaseAllowance(getArtifact(chain, 'RankifyInstance').address, value)
       .then((tx) => tx.wait(1));
   } else return 0;
 };

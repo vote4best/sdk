@@ -3,7 +3,6 @@
   "description": "rankify.it client library",
   "version": "0.7.1",
   "private": "true",
-  "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "publishConfig": {
