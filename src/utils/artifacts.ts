@@ -1,9 +1,17 @@
-import {JsonFragment} from "@ethersproject/abi";
+import {
+  RankToken,
+  RankifyDiamondInstance,
+  MultipassDiamond,
+} from "rankify-contracts/types";
+import { JsonFragment } from "@ethersproject/abi";
+import { Rankify } from "rankify-contracts/types";
+export type SupportedChains = "anvil" | "localhost";
 
-export const chainIds = {
-  anvil: 97113,
-};
-
+export type ArtifactTypes =
+  | "Rankify"
+  | "RankifyInstance"
+  | "RankToken"
+  | "Multipass";
 /**
  * Retrieves the Rankify artifact for the specified chain.
  * @param chain The chain identifier.
@@ -12,33 +20,19 @@ export const chainIds = {
  * @throws Error if the contract deployment is not found.
  */
 export const getArtifact = (
-    chain: string,
-    artifactName: 'Rankify' | 'RankifyInstance' | 'RankToken'
+  chain: SupportedChains,
+  artifactName: ArtifactTypes
 ): { abi: JsonFragment[]; address: string } => {
-  const deployment = require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
-  const chainId = chainIds[chain];
-  const artifact = { chainId, ...deployment };
+  const artifact = require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
+
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
   return artifact;
 };
-
-export const getRankifyArtifact = (
-    chain: string
-): { abi: JsonFragment[]; address: string } => {
-  return getArtifact(chain, 'Rankify');
+export type ArtifactContractInterfaces = {
+  Rankify: Rankify;
+  RankToken: RankToken;
+  RankifyInstance: RankifyDiamondInstance;
+  Multipass: MultipassDiamond;
 };
-
-export const getRankifyInstanceArtifact = (
-    chain: string
-): { abi: JsonFragment[]; address: string } => {
-  return getArtifact(chain, 'RankifyInstance');
-};
-
-export const getRankArtifact = (
-    chain: string
-): { abi: JsonFragment[]; address: string } => {
-  return getArtifact(chain, 'RankToken');
-};
-

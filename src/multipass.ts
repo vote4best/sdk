@@ -11,9 +11,6 @@ export interface SignerIdentity {
   id: string;
   wallet: Wallet | SignerWithAddress;
 }
-interface ReferrerMesage {
-  referrerAddress: string;
-}
 interface RegisterMessage {
   name: BytesLike;
   id: BytesLike;
@@ -22,9 +19,7 @@ interface RegisterMessage {
   nonce: BigNumber;
 }
 
-type signatureMessage = ReferrerMesage | RegisterMessage;
-
-export class MultipassJs {
+export default class MultipassJs {
   // private JsonRpcProvider;
   private chainId;
   private name;

@@ -1,7 +1,7 @@
 const { writeFileSync } = require("fs");
 const path = require("path");
 const stage = process.argv[2];
-const copyPackgeFile = () => {
+const copyPackageFile = () => {
   const packageJson = require("./package.json");
   delete packageJson.private;
   console.log("stage is", stage);
@@ -22,4 +22,4 @@ const copyPackgeFile = () => {
   );
 };
 
-copyPackgeFile();
+copyPackageFile();
