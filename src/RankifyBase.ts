@@ -1,4 +1,4 @@
-import { ethers, BigNumberish } from "ethers";
+import { ethers, BigNumberish, BigNumber } from "ethers";
 import { TurnEndedEventObject } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
 import {
   SupportedChains,
@@ -20,43 +20,18 @@ enum gameStatusEnum {
 }
 
 export default class RankifyBase {
-  EIP712name: string;
-  EIP712Version: string;
   provider: ethers.providers.JsonRpcProvider;
-  verifyingContract: string;
-  chainId: string;
   chain: SupportedChains;
 
-  /**
-   * Creates a new instance of the Player class.
-   * @param {Object} options - The options for initializing the Player.
-   * @param {string} options.EIP712name - The name of the EIP712 standard.
-   * @param {string} options.EIP712Version - The version of the EIP712 standard.
-   * @param {string} options.verifyingContract - The address of the contract being verified.
-   * @param {ethers.providers.Web3Provider} options.provider - The Web3 provider used for interacting with the blockchain.
-   * @param {string} options.chainId - The chain ID of the blockchain network.
-   */
   constructor({
-    EIP712name,
-    EIP712Version,
-    verifyingContract,
     provider,
     chain,
-    chainId,
   }: {
-    EIP712name: string;
-    EIP712Version: string;
-    verifyingContract: string;
     provider: ethers.providers.JsonRpcProvider;
-    chainId: string;
     chain: SupportedChains;
   }) {
-    this.EIP712Version = EIP712Version;
-    this.EIP712name = EIP712name;
     this.provider = provider;
-    this.chainId = chainId;
     this.chain = chain;
-    this.verifyingContract = verifyingContract;
   }
 
   /**
@@ -290,10 +265,7 @@ export default class RankifyBase {
         );
     });
   };
-  getContractState = async (
-    chain: SupportedChains,
-    provider: ethers.providers.Web3Provider
-  ) => {
+  getContractState = async () => {
     const contract = this.getContract("RankifyInstance");
     const cs = await contract
       .getContractState()
@@ -360,7 +332,7 @@ export default class RankifyBase {
         );
       })
     );
-    const promises = [];
+    const promises: any[] = [];
 
     promises.push(contract.getScores(gameId));
     promises.push(contract.getTurn(gameId));
@@ -373,17 +345,17 @@ export default class RankifyBase {
     promises.push(contract.getPlayers(gameId));
     promises.push(contract.canStartGame(gameId));
     return Promise.all(promises).then((values) => {
-      const scores = values[0];
-      const currentTurn = values[1];
-      const isFinished = values[2];
-      const isOvertime = values[3];
-      const isLastTurn = values[4];
-      const isOpen = values[5];
-      const createdBy = values[6];
-      const gameRank = values[7];
-      const players = values[8];
-      const canStart = values[9];
-      const gamePhase = isFinished
+      const scores = values[0] as [string, BigNumber];
+      const currentTurn = values[1] as BigNumber;
+      const isFinished = values[2] as boolean;
+      const isOvertime = values[3] as boolean;
+      const isLastTurn = values[4] as boolean;
+      const isOpen = values[5] as boolean;
+      const createdBy = values[6] as string;
+      const gameRank = values[7] as BigNumber;
+      const players = values[8] as string[];
+      const canStart = values[9] as boolean;
+      const gamePhase = (isFinished as boolean)
         ? gameStatusEnum["finished"]
         : isOvertime
         ? gameStatusEnum["overtime"]

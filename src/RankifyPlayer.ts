@@ -6,27 +6,16 @@ import { LibCoinVending } from "rankify-contracts/types/hardhat-diamond-abi/Hard
 export default class RankifyPlayer extends RankifyBase {
   signer: ethers.providers.JsonRpcSigner;
   constructor({
-    EIP712name,
-    EIP712Version,
-    verifyingContract,
     signer,
     chain,
-    chainId,
   }: {
-    EIP712name: string;
-    EIP712Version: string;
-    verifyingContract: string;
     signer: ethers.providers.JsonRpcSigner;
-    chainId: string;
+
     chain: SupportedChains;
   }) {
     super({
-      EIP712name,
-      EIP712Version,
-      verifyingContract,
       provider: signer.provider,
       chain,
-      chainId,
     });
     this.signer = signer;
   }

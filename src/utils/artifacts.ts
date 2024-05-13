@@ -5,6 +5,7 @@ import {
 } from "rankify-contracts/types";
 import { JsonFragment } from "@ethersproject/abi";
 import { Rankify } from "rankify-contracts/types";
+import { ethers } from "ethers";
 export type SupportedChains = "anvil" | "localhost";
 
 export type ArtifactTypes =
@@ -35,4 +36,26 @@ export type ArtifactContractInterfaces = {
   RankToken: RankToken;
   RankifyInstance: RankifyDiamondInstance;
   Multipass: MultipassDiamond;
+};
+
+/**
+ * Retrieves the contract instance for the specified chain using the provided provider.
+ * @param chain The supported chain for the contract.
+ * @param provider The Web3Provider or Signer instance used for interacting with the blockchain.
+ * @returns The contract instance.
+ */
+export const getContract = <T extends ArtifactTypes>(
+  chain: SupportedChains,
+  artifactName: T,
+  providerOrSigner:
+    | ethers.providers.JsonRpcProvider
+    | ethers.providers.JsonRpcSigner
+) => {
+  const artifact = getArtifact(chain, artifactName);
+
+  return new ethers.Contract(
+    artifact.address,
+    artifact.abi,
+    providerOrSigner
+  ) as ArtifactContractInterfaces[T];
 };

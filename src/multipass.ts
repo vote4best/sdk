@@ -1,25 +1,8 @@
-import { ethers, BigNumber, Wallet, BytesLike } from "ethers";
+import { ethers, Wallet } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { LibMultipass } from "rankify-contracts/types/src/facets/DNSFacet";
-export enum SearchCriteria {
-  id,
-  username,
-  address,
-}
-export interface SignerIdentity {
-  name: string;
-  id: string;
-  wallet: Wallet | SignerWithAddress;
-}
-interface RegisterMessage {
-  name: BytesLike;
-  id: BytesLike;
-  domainName: BytesLike;
-  deadline: BigNumber;
-  nonce: BigNumber;
-}
-
-export default class MultipassJs {
+import { RegisterMessage } from "./types";
+export default class Multipass {
   // private JsonRpcProvider;
   private chainId;
   private name;
