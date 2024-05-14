@@ -1,5 +1,13 @@
 # rankify-js
 
+## 1.0.0
+
+### Major Changes
+
+- [#22](https://github.com/rankify-it/sdk/pull/22) [`d799c77`](https://github.com/rankify-it/sdk/commit/d799c77a1a4c5c7a2e141f1b18bea451db13b036) Thanks [@theKosmoss](https://github.com/theKosmoss)! - added ability to query rankify artifacts by chain name and artifact name;
+
+  In order to upgrade code you need to update all code places to use classes, either `RankifyBase` or `RankifyPlayer`
+
 ## 0.7.3
 
 ### Patch Changes
