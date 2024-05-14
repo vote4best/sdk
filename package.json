@@ -1,7 +1,7 @@
 {
   "name": "rankify-js",
   "description": "rankify.it client library",
-  "version": "0.7.3",
+  "version": "1.0.0",
   "private": "true",
   "type": "module",
   "main": "./src/index.ts",
