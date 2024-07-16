@@ -43,7 +43,7 @@ export default class RankifyPlayer extends RankifyBase {
     gameRank: string,
     gameId?: BigNumberish
   ) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return contract.getContractState().then(async (reqs) =>
       this.approveTokensIfNeeded(reqs.BestOfState.gamePrice).then(() => {
         if (gameId) {
@@ -66,7 +66,7 @@ export default class RankifyPlayer extends RankifyBase {
    * @returns A promise that resolves to the transaction receipt once the join transaction is confirmed.
    */
   joinGame = async (gameId: string) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
 
     const reqs = await contract.getJoinRequirements(gameId);
     const values = reqs.ethValues;
@@ -85,7 +85,7 @@ export default class RankifyPlayer extends RankifyBase {
    * @returns A promise that resolves to the result of the startGame transaction.
    */
   startGame = async (gameId: string) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return await contract.startGame(gameId);
   };
 
@@ -97,7 +97,7 @@ export default class RankifyPlayer extends RankifyBase {
    * @returns A promise that resolves to the result of cancelling the game.
    */
   cancelGame = async (gameId: string) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return await contract.cancelGame(gameId);
   };
 
@@ -108,7 +108,7 @@ export default class RankifyPlayer extends RankifyBase {
    * @returns A promise that resolves to the transaction receipt.
    */
   leaveGame = async (gameId: string) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return contract.leaveGame(gameId).then((tx) => tx.wait(1));
   };
 
@@ -119,7 +119,7 @@ export default class RankifyPlayer extends RankifyBase {
    * @returns A promise that resolves to the result of opening the registration.
    */
   openRegistration = async (gameId: string) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return await contract.openRegistration(gameId);
   };
 
@@ -134,7 +134,7 @@ export default class RankifyPlayer extends RankifyBase {
     gameId: string,
     config: LibCoinVending.ConfigPositionStruct
   ) => {
-    const contract = this.getContract("RankifyInstance");
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return await contract.setJoinRequirements(gameId, config);
   };
 }
