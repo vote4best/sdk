@@ -1,5 +1,11 @@
 # rankify-js
 
+## 1.0.1
+
+### Patch Changes
+
+- [#25](https://github.com/rankify-it/sdk/pull/25) [`6c12af3`](https://github.com/rankify-it/sdk/commit/6c12af36a9fff400be057d068c25c4971c806acc) Thanks [@theKosmoss](https://github.com/theKosmoss)! - Fixed getContract calls in RankifyPlayers
+
 ## 1.0.0
 
 ### Major Changes
