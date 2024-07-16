@@ -29,7 +29,7 @@ export default class RankifyPlayer extends RankifyBase {
    */
   approveTokensIfNeeded = async (value: BigNumberish) => {
     if (ethers.BigNumber.from(value).gt(0)) {
-      return this.getContract("Rankify")
+      return this.getContract("Rankify").connect(this.signer)
         .increaseAllowance(
           getArtifact(this.chain, "RankifyInstance").address,
           value
