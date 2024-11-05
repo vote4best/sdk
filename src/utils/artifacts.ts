@@ -24,8 +24,9 @@ export const getArtifact = (
   chain: SupportedChains,
   artifactName: ArtifactTypes
 ): { abi: JsonFragment[]; address: string } => {
-  const artifact = require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
-
+  const artifact = (artifactName === "Multipass" 
+    ? require(`@peeramid-labs/multipass/deployments/${chain}/${artifactName}.json`) 
+    : require(`rankify-contracts/deployments/${chain}/${artifactName}.json`));
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
