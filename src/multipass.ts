@@ -2,25 +2,18 @@ import { ethers, Wallet } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { LibMultipass } from "rankify-contracts/types/src/facets/DNSFacet";
 import { RegisterMessage } from "./types";
+import { chainIdMapping, getArtifact, SupportedChains } from "./utils";
 export default class Multipass {
   // private JsonRpcProvider;
-  private chainId;
-  private name;
-  private version;
-  constructor({
-    chainId,
-    contractName,
-    version,
-  }: {
-    chainId: any;
-    contractName: string;
-    version: string;
-  }) {
-    // if (!ProviderNetwork) throw new Error("Provider network not defined");
-    // this.JsonRpcProvider = new ethers.providers.BaseProvider(ProviderNetwork);
-    this.chainId = chainId;
-    this.name = contractName;
-    this.version = version;
+  private chainId: string;
+  private name: string;
+  private version: string;
+  constructor({ chainName }: { chainName: SupportedChains }) {
+    this.chainId = chainIdMapping[chainName];
+    console.log(this.chainId);
+    const c = getArtifact(chainName, "Multipass");
+    this.name = c.execute.args[0];
+    this.version = c.execute.args[1];
   }
   public getDappURL(
     message: any,
@@ -30,23 +23,9 @@ export default class Multipass {
     contractAddress: string,
     domain: string
   ) {
-    return (
-      basepath +
-      "/?message=" +
-      Buffer.from(JSON.stringify(message)).toString("base64") +
-      "&contractAddress=" +
-      contractAddress +
-      "&signature=" +
-      signature +
-      "&chainId=" +
-      this.chainId
-    );
+    return basepath + "/?message=" + Buffer.from(JSON.stringify(message)).toString("base64") + "&contractAddress=" + contractAddress + "&signature=" + signature + "&chainId=" + this.chainId;
   }
-  public signRegistrarMessage = async (
-    message: RegisterMessage,
-    verifierAddress: string,
-    signer: Wallet | SignerWithAddress
-  ) => {
+  public signRegistrarMessage = async (message: RegisterMessage, verifierAddress: string, signer: Wallet | SignerWithAddress) => {
     let chainId = this.chainId;
 
     const domain = {
@@ -80,22 +59,12 @@ export default class Multipass {
         },
       ],
     };
-
+    console.log("signing", domain, types, { ...message });
     const s = await signer._signTypedData(domain, types, { ...message });
     return s;
   };
 
-  public getRegistrarMessage = ({
-    username,
-    id,
-    domainName,
-    validUntil,
-  }: {
-    username: string;
-    id: string;
-    domainName: string;
-    validUntil: number;
-  }) => {
+  public getRegistrarMessage = ({ username, id, domainName, validUntil }: { username: string; id: string; domainName: string; validUntil: number }) => {
     const registrarMessage = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),
@@ -107,17 +76,8 @@ export default class Multipass {
     return registrarMessage;
   };
 
-  public formQueryByAddress = ({
-    address,
-    domainName,
-    targetDomain,
-  }: {
-    address: string;
-    targetDomain?: string;
-    domainName: string;
-  }) => {
-    if (!ethers.utils.isAddress(address))
-      throw new Error("formQueryByAddress: is not a valid address");
+  public formQueryByAddress = ({ address, domainName, targetDomain }: { address: string; targetDomain?: string; domainName: string }) => {
+    if (!ethers.utils.isAddress(address)) throw new Error("formQueryByAddress: is not a valid address");
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(""),
       id: ethers.utils.formatBytes32String(""),
@@ -128,15 +88,7 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryById = ({
-    id,
-    domainName,
-    targetDomain,
-  }: {
-    id: string;
-    targetDomain?: string;
-    domainName: string;
-  }) => {
+  public formQueryById = ({ id, domainName, targetDomain }: { id: string; targetDomain?: string; domainName: string }) => {
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(""),
       id: ethers.utils.formatBytes32String(id),
@@ -147,15 +99,7 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryByUsername = ({
-    username,
-    domainName,
-    targetDomain,
-  }: {
-    username: string;
-    targetDomain?: string;
-    domainName: string;
-  }) => {
+  public formQueryByUsername = ({ username, domainName, targetDomain }: { username: string; targetDomain?: string; domainName: string }) => {
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(""),
@@ -166,17 +110,7 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryByUsernameAndId = ({
-    username,
-    domainName,
-    targetDomain,
-    id,
-  }: {
-    username: string;
-    targetDomain?: string;
-    domainName: string;
-    id: string;
-  }) => {
+  public formQueryByUsernameAndId = ({ username, domainName, targetDomain, id }: { username: string; targetDomain?: string; domainName: string; id: string }) => {
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),
@@ -187,21 +121,8 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryByFullDetails = ({
-    username,
-    domainName,
-    targetDomain,
-    id,
-    address,
-  }: {
-    username: string;
-    targetDomain?: string;
-    domainName: string;
-    id: string;
-    address: string;
-  }) => {
-    if (!ethers.utils.isAddress(address))
-      throw new Error("formQueryByAddress: is not a valid address");
+  public formQueryByFullDetails = ({ username, domainName, targetDomain, id, address }: { username: string; targetDomain?: string; domainName: string; id: string; address: string }) => {
+    if (!ethers.utils.isAddress(address)) throw new Error("formQueryByAddress: is not a valid address");
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),

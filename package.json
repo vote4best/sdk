@@ -24,9 +24,9 @@
   "scripts": {
     "prebuild": "jq '.type = \"commonjs\"' package.json > temp.json && mv temp.json package.json",
     "build-esm": "tsc --project tsconfig.esm.json",
-    "build-all": "yarn run build-commonjs && yarn run build-esm",
+    "build-all": "pnpm run build-commonjs && pnpm run build-esm",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
-    "build": "yarn build-all && node ./copyPackageFile.js prod",
+    "build": "pnpm build-all && node ./copyPackageFile.js prod",
     "postbuild": "jq '.type = \"module\"' package.json > temp.json && mv temp.json package.json && cp README.md dist && cp -r .changeset ./dist/.changeset && prettier --write \"dist/**/*.{ts,js,json}\" &&  cd ./dist && pnpm install",
     "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist && cd dist && pnpm changeset publish",
     "version": "changeset version",
