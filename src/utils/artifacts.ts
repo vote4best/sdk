@@ -1,18 +1,15 @@
-import {
-  RankToken,
-  RankifyDiamondInstance,
-  MultipassDiamond,
-} from "rankify-contracts/types";
+import { RankToken, RankifyDiamondInstance, MultipassDiamond } from "rankify-contracts/types";
 import { JsonFragment } from "@ethersproject/abi";
 import { Rankify } from "rankify-contracts/types";
 import { ethers } from "ethers";
 export type SupportedChains = "anvil" | "localhost";
 
-export type ArtifactTypes =
-  | "Rankify"
-  | "RankifyInstance"
-  | "RankToken"
-  | "Multipass";
+export const chainIdMapping: { [key in SupportedChains]: string } = {
+  anvil: "97113",
+  localhost: "1337",
+};
+
+export type ArtifactTypes = "Rankify" | "RankifyInstance" | "RankToken" | "Multipass";
 /**
  * Retrieves the Rankify artifact for the specified chain.
  * @param chain The chain identifier.
@@ -20,10 +17,7 @@ export type ArtifactTypes =
  * @returns The Rankify artifact containing the ABI and address.
  * @throws Error if the contract deployment is not found.
  */
-export const getArtifact = (
-  chain: SupportedChains,
-  artifactName: ArtifactTypes
-): { abi: JsonFragment[]; address: string } => {
+export const getArtifact = (chain: SupportedChains, artifactName: ArtifactTypes): { abi: JsonFragment[]; address: string; execute: { args: string[] } } => {
   const artifact = require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
 
   if (!artifact) {
@@ -44,18 +38,8 @@ export type ArtifactContractInterfaces = {
  * @param provider The Web3Provider or Signer instance used for interacting with the blockchain.
  * @returns The contract instance.
  */
-export const getContract = <T extends ArtifactTypes>(
-  chain: SupportedChains,
-  artifactName: T,
-  providerOrSigner:
-    | ethers.providers.JsonRpcProvider
-    | ethers.providers.JsonRpcSigner
-) => {
+export const getContract = <T extends ArtifactTypes>(chain: SupportedChains, artifactName: T, providerOrSigner: ethers.providers.JsonRpcProvider | ethers.providers.JsonRpcSigner) => {
   const artifact = getArtifact(chain, artifactName);
 
-  return new ethers.Contract(
-    artifact.address,
-    artifact.abi,
-    providerOrSigner
-  ) as ArtifactContractInterfaces[T];
+  return new ethers.Contract(artifact.address, artifact.abi, providerOrSigner) as ArtifactContractInterfaces[T];
 };

@@ -30,28 +30,17 @@ export default class RankifyPlayer extends RankifyBase {
   approveTokensIfNeeded = async (value: BigNumberish) => {
     if (ethers.BigNumber.from(value).gt(0)) {
       return this.getContract("Rankify")
-        .increaseAllowance(
-          getArtifact(this.chain, "RankifyInstance").address,
-          value
-        )
+        .increaseAllowance(getArtifact(this.chain, "RankifyInstance").address, value)
         .then((tx) => tx.wait(1));
     } else return 0;
   };
 
-  createGame = async (
-    gameMaster: string,
-    gameRank: string,
-    gameId?: BigNumberish
-  ) => {
-    const contract = this.getContract("RankifyInstance");
+  createGame = async (gameMaster: string, gameRank: string, gameId?: BigNumberish) => {
+    const contract = this.getContract("RankifyInstance").connect(this.signer);
     return contract.getContractState().then(async (reqs) =>
       this.approveTokensIfNeeded(reqs.BestOfState.gamePrice).then(() => {
         if (gameId) {
-          return contract["createGame(address,uint256,uint256)"](
-            gameMaster,
-            gameId,
-            gameRank
-          );
+          return contract["createGame(address,uint256,uint256)"](gameMaster, gameId, gameRank);
         } else {
           return contract["createGame(address,uint256)"](gameMaster, gameRank);
         }
@@ -73,9 +62,7 @@ export default class RankifyPlayer extends RankifyBase {
 
     const value = values.bet.add(values.burn).add(values.pay);
 
-    return contract
-      .joinGame(gameId, { value: value.toString() ?? "0" })
-      .then((tx) => tx.wait(1));
+    return contract.joinGame(gameId, { value: value.toString() ?? "0" }).then((tx) => tx.wait(1));
   };
 
   /**
@@ -130,10 +117,7 @@ export default class RankifyPlayer extends RankifyBase {
    * @param signer - The JSON-RPC signer used to interact with the contract.
    * @returns A promise that resolves to the result of setting the join requirements.
    */
-  setJoinRequirements = async (
-    gameId: string,
-    config: LibCoinVending.ConfigPositionStruct
-  ) => {
+  setJoinRequirements = async (gameId: string, config: LibCoinVending.ConfigPositionStruct) => {
     const contract = this.getContract("RankifyInstance");
     return await contract.setJoinRequirements(gameId, config);
   };
