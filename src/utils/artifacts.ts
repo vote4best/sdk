@@ -1,18 +1,10 @@
-import {
-  RankToken,
-  RankifyDiamondInstance,
-  MultipassDiamond,
-} from "rankify-contracts/types";
+import { RankToken, RankifyDiamondInstance, MultipassDiamond } from "rankify-contracts/types";
 import { JsonFragment } from "@ethersproject/abi";
 import { Rankify } from "rankify-contracts/types";
 import { ethers } from "ethers";
 export type SupportedChains = "anvil" | "localhost";
 
-export type ArtifactTypes =
-  | "Rankify"
-  | "RankifyInstance"
-  | "RankToken"
-  | "Multipass";
+export type ArtifactTypes = "Rankify" | "RankifyInstance" | "RankToken" | "Multipass";
 /**
  * Retrieves the Rankify artifact for the specified chain.
  * @param chain The chain identifier.
@@ -22,7 +14,7 @@ export type ArtifactTypes =
  */
 export const getArtifact = (
   chain: SupportedChains,
-  artifactName: ArtifactTypes
+  artifactName: ArtifactTypes,
 ): { abi: JsonFragment[]; address: string } => {
   const artifact = require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
 
@@ -47,15 +39,9 @@ export type ArtifactContractInterfaces = {
 export const getContract = <T extends ArtifactTypes>(
   chain: SupportedChains,
   artifactName: T,
-  providerOrSigner:
-    | ethers.providers.JsonRpcProvider
-    | ethers.providers.JsonRpcSigner
+  providerOrSigner: ethers.providers.JsonRpcProvider | ethers.providers.JsonRpcSigner,
 ) => {
   const artifact = getArtifact(chain, artifactName);
 
-  return new ethers.Contract(
-    artifact.address,
-    artifact.abi,
-    providerOrSigner
-  ) as ArtifactContractInterfaces[T];
+  return new ethers.Contract(artifact.address, artifact.abi, providerOrSigner) as ArtifactContractInterfaces[T];
 };

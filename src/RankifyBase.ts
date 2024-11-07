@@ -1,12 +1,6 @@
 import { ethers, BigNumberish, BigNumber } from "ethers";
 import { TurnEndedEventObject } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
-import {
-  SupportedChains,
-  ArtifactTypes,
-  getArtifact,
-  ApiError,
-  ArtifactContractInterfaces,
-} from "./utils/index";
+import { SupportedChains, ArtifactTypes, getArtifact, ApiError, ArtifactContractInterfaces } from "./utils/index";
 import { RankifyDiamondInstance } from "rankify-contracts/types";
 import { deepArrayToObject } from "./utils";
 enum gameStatusEnum {
@@ -23,13 +17,7 @@ export default class RankifyBase {
   provider: ethers.providers.JsonRpcProvider;
   chain: SupportedChains;
 
-  constructor({
-    provider,
-    chain,
-  }: {
-    provider: ethers.providers.JsonRpcProvider;
-    chain: SupportedChains;
-  }) {
+  constructor({ provider, chain }: { provider: ethers.providers.JsonRpcProvider; chain: SupportedChains }) {
     this.provider = provider;
     this.chain = chain;
   }
@@ -43,11 +31,7 @@ export default class RankifyBase {
   getContract = <T extends ArtifactTypes>(artifactName: T) => {
     const artifact = getArtifact(this.chain, artifactName);
 
-    return new ethers.Contract(
-      artifact.address,
-      artifact.abi,
-      this.provider
-    ) as ArtifactContractInterfaces[T];
+    return new ethers.Contract(artifact.address, artifact.abi, this.provider) as ArtifactContractInterfaces[T];
   };
 
   /**
@@ -61,20 +45,10 @@ export default class RankifyBase {
     const contract = this.getContract("RankifyInstance");
     //list all events of gameId that ended turnId.
     const filterTurnEnded = contract.filters.TurnEnded(gameId, turnId);
-    const turnEndedEvents = await contract.queryFilter(
-      filterTurnEnded,
-      0,
-      "latest"
-    );
+    const turnEndedEvents = await contract.queryFilter(filterTurnEnded, 0, "latest");
     //There shall be only one such event
     if (turnEndedEvents.length !== 1) {
-      console.error(
-        "getHistoricTurn",
-        gameId,
-        turnId,
-        "failed:",
-        turnEndedEvents.length
-      );
+      console.error("getHistoricTurn", gameId, turnId, "failed:", turnEndedEvents.length);
       const err = new ApiError("Game not found", { status: 404 });
       throw err;
     }
@@ -119,18 +93,8 @@ export default class RankifyBase {
     if (!turnId) throw new Error("turnId not set");
     const contract = this.getContract("RankifyInstance");
     const filterVoteEvent = contract.filters.VoteSubmitted(gameId, turnId);
-    const filterProposalEvent = contract.filters.ProposalSubmitted(
-      gameId,
-      turnId,
-      null,
-      null,
-      null
-    );
-    const proposalEvents = await contract.queryFilter(
-      filterProposalEvent,
-      0,
-      "latest"
-    );
+    const filterProposalEvent = contract.filters.ProposalSubmitted(gameId, turnId, null, null, null);
+    const proposalEvents = await contract.queryFilter(filterProposalEvent, 0, "latest");
     const voteEvents = await contract.queryFilter(filterVoteEvent, 0, "latest");
     const fixedProposalArgs = proposalEvents.map((event) => {
       return {
@@ -183,8 +147,7 @@ export default class RankifyBase {
     //list all events of gameId that ended turnId.
     const filter = contract.filters.TurnEnded(gameId, currentTurn.sub(1));
     const TurnEndedEvents = await contract.queryFilter(filter, 0, "latest");
-    const args = contract.interface.parseLog(TurnEndedEvents[0])
-      .args as any as TurnEndedEventObject;
+    const args = contract.interface.parseLog(TurnEndedEvents[0]).args as any as TurnEndedEventObject;
     return args.newProposals;
   };
 
@@ -196,22 +159,14 @@ export default class RankifyBase {
    * @param timeToJoin - Optional. The additional time (in seconds) to join the game.
    * @returns A Promise that resolves to the registration deadline timestamp.
    */
-  getRegistrationDeadline = async (
-    gameId: BigNumberish,
-    timeToJoin?: number
-  ) => {
+  getRegistrationDeadline = async (gameId: BigNumberish, timeToJoin?: number) => {
     const contract = this.getContract("RankifyInstance");
     const filter = contract.filters.RegistrationOpen(gameId);
     return contract.queryFilter(filter, 0, "latest").then((events) =>
       events[0].getBlock().then(async (block) => {
         if (timeToJoin) return block.timestamp + timeToJoin;
-        else
-          return contract
-            .getContractState()
-            .then(
-              (cs) => block.timestamp + cs.TBGSEttings.timeToJoin.toNumber()
-            );
-      })
+        else return contract.getContractState().then((cs) => block.timestamp + cs.TBGSEttings.timeToJoin.toNumber());
+      }),
     );
   };
 
@@ -227,12 +182,10 @@ export default class RankifyBase {
   resolveTurnDeadline = async (
     block: ethers.providers.Block,
     contract: RankifyDiamondInstance,
-    timePerTurn?: number
+    timePerTurn?: number,
   ) => {
     if (timePerTurn) return block.timestamp + timePerTurn;
-    return contract
-      .getContractState()
-      .then((cs) => cs.TBGSEttings.timePerTurn.toNumber() + block.timestamp);
+    return contract.getContractState().then((cs) => cs.TBGSEttings.timePerTurn.toNumber() + block.timestamp);
   };
 
   /**
@@ -251,25 +204,17 @@ export default class RankifyBase {
 
     return contract.getTurn(gameId).then(async (ct) => {
       if (ct.eq(0)) return 0;
-      const filter = ct.eq(1)
-        ? contract.filters.GameStarted(gameId)
-        : contract.filters.TurnEnded(gameId, ct.sub(1));
+      const filter = ct.eq(1) ? contract.filters.GameStarted(gameId) : contract.filters.TurnEnded(gameId, ct.sub(1));
       return contract
         .queryFilter(filter, 0, "latest")
         .then(async (evts) =>
-          evts[0]
-            .getBlock()
-            .then(async (block) =>
-              this.resolveTurnDeadline(block, contract, timePerTurn)
-            )
+          evts[0].getBlock().then(async (block) => this.resolveTurnDeadline(block, contract, timePerTurn)),
         );
     });
   };
   getContractState = async () => {
     const contract = this.getContract("RankifyInstance");
-    const cs = await contract
-      .getContractState()
-      .then((x) => deepArrayToObject(x));
+    const cs = await contract.getContractState().then((x) => deepArrayToObject(x));
     return cs;
   };
 
@@ -328,9 +273,9 @@ export default class RankifyBase {
           gameId,
           address,
           joinRequirements.contractIds[idx],
-          joinRequirements.contractTypes[idx]
+          joinRequirements.contractTypes[idx],
         );
-      })
+      }),
     );
     const promises: any[] = [];
 
@@ -358,16 +303,16 @@ export default class RankifyBase {
       const gamePhase = (isFinished as boolean)
         ? gameStatusEnum["finished"]
         : isOvertime
-        ? gameStatusEnum["overtime"]
-        : isLastTurn
-        ? gameStatusEnum["lastTurn"]
-        : currentTurn.gt(0)
-        ? gameStatusEnum["started"]
-        : isOpen
-        ? gameStatusEnum["open"]
-        : gameMaster
-        ? gameStatusEnum["created"]
-        : gameStatusEnum["notFound"];
+          ? gameStatusEnum["overtime"]
+          : isLastTurn
+            ? gameStatusEnum["lastTurn"]
+            : currentTurn.gt(0)
+              ? gameStatusEnum["started"]
+              : isOpen
+                ? gameStatusEnum["open"]
+                : gameMaster
+                  ? gameStatusEnum["created"]
+                  : gameStatusEnum["notFound"];
       return {
         gameMaster,
         joinRequirements,

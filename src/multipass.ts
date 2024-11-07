@@ -7,15 +7,7 @@ export default class Multipass {
   private chainId;
   private name;
   private version;
-  constructor({
-    chainId,
-    contractName,
-    version,
-  }: {
-    chainId: any;
-    contractName: string;
-    version: string;
-  }) {
+  constructor({ chainId, contractName, version }: { chainId: any; contractName: string; version: string }) {
     // if (!ProviderNetwork) throw new Error("Provider network not defined");
     // this.JsonRpcProvider = new ethers.providers.BaseProvider(ProviderNetwork);
     this.chainId = chainId;
@@ -28,7 +20,7 @@ export default class Multipass {
     // type: string,
     basepath: string,
     contractAddress: string,
-    domain: string
+    domain: string,
   ) {
     return (
       basepath +
@@ -45,7 +37,7 @@ export default class Multipass {
   public signRegistrarMessage = async (
     message: RegisterMessage,
     verifierAddress: string,
-    signer: Wallet | SignerWithAddress
+    signer: Wallet | SignerWithAddress,
   ) => {
     let chainId = this.chainId;
 
@@ -116,8 +108,7 @@ export default class Multipass {
     targetDomain?: string;
     domainName: string;
   }) => {
-    if (!ethers.utils.isAddress(address))
-      throw new Error("formQueryByAddress: is not a valid address");
+    if (!ethers.utils.isAddress(address)) throw new Error("formQueryByAddress: is not a valid address");
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(""),
       id: ethers.utils.formatBytes32String(""),
@@ -200,8 +191,7 @@ export default class Multipass {
     id: string;
     address: string;
   }) => {
-    if (!ethers.utils.isAddress(address))
-      throw new Error("formQueryByAddress: is not a valid address");
+    if (!ethers.utils.isAddress(address)) throw new Error("formQueryByAddress: is not a valid address");
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),
