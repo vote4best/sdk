@@ -17,13 +17,8 @@ export type ArtifactTypes = "Rankify" | "RankifyInstance" | "RankToken" | "Multi
  * @returns The Rankify artifact containing the ABI and address.
  * @throws Error if the contract deployment is not found.
  */
-export const getArtifact = (
-  chain: SupportedChains,
-  artifactName: ArtifactTypes
-): { abi: JsonFragment[]; address: string } => {
-  const artifact = (artifactName === "Multipass"
-    ? require(`@peeramid-labs/multipass/deployments/${chain}/${artifactName}.json`)
-    : require(`rankify-contracts/deployments/${chain}/${artifactName}.json`));
+export const getArtifact = (chain: SupportedChains, artifactName: ArtifactTypes): { abi: JsonFragment[]; address: string; execute: { args: string[] } } => {
+  const artifact = artifactName === "Multipass" ? require(`@peeramid-labs/multipass/deployments/${chain}/${artifactName}.json`) : require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
