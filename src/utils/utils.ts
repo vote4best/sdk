@@ -11,17 +11,12 @@ export const deepArrayToObject = <T>(object: T) => {
   if (typeof object == "string") return object;
   let result = Array.isArray(object) ? [] : {};
   Object.keys(object).forEach((key) => {
-    if (typeof object[key] === "string")
-      result[key] = (" " + object[key]).slice(1);
+    if (typeof object[key] === "string") result[key] = (" " + object[key]).slice(1);
     else if (typeof object[key] === "number") result[key] = Number(object[key]);
-    else if (typeof object[key] === "boolean")
-      result[key] = Boolean(object[key]);
+    else if (typeof object[key] === "boolean") result[key] = Boolean(object[key]);
     else if (object[key] === null) result[key] = null;
     else if (object[key] === undefined) result[key] = undefined;
-    else if (object[key]?._isBigNumber)
-      result[key] = ethers.BigNumber.from(
-        (" " + object[key].toString()).slice(1)
-      );
+    else if (object[key]?._isBigNumber) result[key] = ethers.BigNumber.from((" " + object[key].toString()).slice(1));
     else result[key] = deepArrayToObject(object[key]);
   });
   return result as T;

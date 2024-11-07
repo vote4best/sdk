@@ -21,11 +21,25 @@ export default class Multipass {
     // type: string,
     basepath: string,
     contractAddress: string,
-    domain: string
+    domain: string,
   ) {
-    return basepath + "/?message=" + Buffer.from(JSON.stringify(message)).toString("base64") + "&contractAddress=" + contractAddress + "&signature=" + signature + "&chainId=" + this.chainId;
+    return (
+      basepath +
+      "/?message=" +
+      Buffer.from(JSON.stringify(message)).toString("base64") +
+      "&contractAddress=" +
+      contractAddress +
+      "&signature=" +
+      signature +
+      "&chainId=" +
+      this.chainId
+    );
   }
-  public signRegistrarMessage = async (message: RegisterMessage, verifierAddress: string, signer: Wallet | SignerWithAddress) => {
+  public signRegistrarMessage = async (
+    message: RegisterMessage,
+    verifierAddress: string,
+    signer: Wallet | SignerWithAddress,
+  ) => {
     let chainId = this.chainId;
 
     const domain = {
@@ -64,7 +78,17 @@ export default class Multipass {
     return s;
   };
 
-  public getRegistrarMessage = ({ username, id, domainName, validUntil }: { username: string; id: string; domainName: string; validUntil: number }) => {
+  public getRegistrarMessage = ({
+    username,
+    id,
+    domainName,
+    validUntil,
+  }: {
+    username: string;
+    id: string;
+    domainName: string;
+    validUntil: number;
+  }) => {
     const registrarMessage = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),
@@ -76,7 +100,15 @@ export default class Multipass {
     return registrarMessage;
   };
 
-  public formQueryByAddress = ({ address, domainName, targetDomain }: { address: string; targetDomain?: string; domainName: string }) => {
+  public formQueryByAddress = ({
+    address,
+    domainName,
+    targetDomain,
+  }: {
+    address: string;
+    targetDomain?: string;
+    domainName: string;
+  }) => {
     if (!ethers.utils.isAddress(address)) throw new Error("formQueryByAddress: is not a valid address");
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(""),
@@ -88,7 +120,15 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryById = ({ id, domainName, targetDomain }: { id: string; targetDomain?: string; domainName: string }) => {
+  public formQueryById = ({
+    id,
+    domainName,
+    targetDomain,
+  }: {
+    id: string;
+    targetDomain?: string;
+    domainName: string;
+  }) => {
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(""),
       id: ethers.utils.formatBytes32String(id),
@@ -99,7 +139,15 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryByUsername = ({ username, domainName, targetDomain }: { username: string; targetDomain?: string; domainName: string }) => {
+  public formQueryByUsername = ({
+    username,
+    domainName,
+    targetDomain,
+  }: {
+    username: string;
+    targetDomain?: string;
+    domainName: string;
+  }) => {
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(""),
@@ -110,7 +158,17 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryByUsernameAndId = ({ username, domainName, targetDomain, id }: { username: string; targetDomain?: string; domainName: string; id: string }) => {
+  public formQueryByUsernameAndId = ({
+    username,
+    domainName,
+    targetDomain,
+    id,
+  }: {
+    username: string;
+    targetDomain?: string;
+    domainName: string;
+    id: string;
+  }) => {
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),
@@ -121,7 +179,19 @@ export default class Multipass {
     return query;
   };
 
-  public formQueryByFullDetails = ({ username, domainName, targetDomain, id, address }: { username: string; targetDomain?: string; domainName: string; id: string; address: string }) => {
+  public formQueryByFullDetails = ({
+    username,
+    domainName,
+    targetDomain,
+    id,
+    address,
+  }: {
+    username: string;
+    targetDomain?: string;
+    domainName: string;
+    id: string;
+    address: string;
+  }) => {
     if (!ethers.utils.isAddress(address)) throw new Error("formQueryByAddress: is not a valid address");
     const query: LibMultipass.NameQueryStruct = {
       name: ethers.utils.formatBytes32String(username),

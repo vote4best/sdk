@@ -29,11 +29,9 @@ export default class RankifyPlayer extends RankifyBase {
    */
   approveTokensIfNeeded = async (value: BigNumberish) => {
     if (ethers.BigNumber.from(value).gt(0)) {
-      return this.getContract("Rankify").connect(this.signer)
-        .increaseAllowance(
-          getArtifact(this.chain, "RankifyInstance").address,
-          value
-        )
+      return this.getContract("Rankify")
+        .connect(this.signer)
+        .increaseAllowance(getArtifact(this.chain, "RankifyInstance").address, value)
         .then((tx) => tx.wait(1));
     } else return 0;
   };
@@ -47,7 +45,7 @@ export default class RankifyPlayer extends RankifyBase {
         } else {
           return contract["createGame(address,uint256)"](gameMaster, gameRank);
         }
-      })
+      }),
     );
   };
 
