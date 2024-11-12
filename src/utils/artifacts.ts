@@ -6,7 +6,7 @@ export type SupportedChains = "anvil" | "localhost";
 
 export const chainIdMapping: { [key in SupportedChains]: string } = {
   anvil: "97113",
-  localhost: "1337",
+  localhost: "42161",
 };
 
 export type ArtifactTypes = "Rankify" | "RankifyInstance" | "RankToken" | "Multipass";

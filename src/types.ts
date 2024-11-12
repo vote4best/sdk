@@ -16,6 +16,6 @@ export interface RegisterMessage {
   name: BytesLike;
   id: BytesLike;
   domainName: BytesLike;
-  deadline: BigNumber;
+  validUntil: BigNumber;
   nonce: BigNumber;
 }

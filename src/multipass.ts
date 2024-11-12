@@ -4,13 +4,11 @@ import { LibMultipass } from "rankify-contracts/types/src/facets/DNSFacet";
 import { RegisterMessage } from "./types";
 import { chainIdMapping, getArtifact, SupportedChains } from "./utils";
 export default class Multipass {
-  // private JsonRpcProvider;
   private chainId: string;
   private name: string;
   private version: string;
   constructor({ chainName }: { chainName: SupportedChains }) {
     this.chainId = chainIdMapping[chainName];
-    console.log(this.chainId);
     const c = getArtifact(chainName, "Multipass");
     this.name = c.execute.args[0];
     this.version = c.execute.args[1];
@@ -18,7 +16,6 @@ export default class Multipass {
   public getDappURL(
     message: any,
     signature: string,
-    // type: string,
     basepath: string,
     contractAddress: string,
     domain: string,
@@ -35,6 +32,7 @@ export default class Multipass {
       this.chainId
     );
   }
+
   public signRegistrarMessage = async (
     message: RegisterMessage,
     verifierAddress: string,
@@ -65,7 +63,7 @@ export default class Multipass {
         },
         {
           type: "uint256",
-          name: "deadline",
+          name: "validUntil",
         },
         {
           type: "uint96",
@@ -93,7 +91,7 @@ export default class Multipass {
       name: ethers.utils.formatBytes32String(username),
       id: ethers.utils.formatBytes32String(id),
       domainName: ethers.utils.formatBytes32String(domainName),
-      deadline: ethers.BigNumber.from(validUntil),
+      validUntil: ethers.BigNumber.from(validUntil),
       nonce: ethers.BigNumber.from(0),
     };
 
