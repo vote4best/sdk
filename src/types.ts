@@ -1,5 +1,6 @@
 import { BigNumber, Wallet, BytesLike } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+export { LibMultipass } from "@peeramid-labs/multipass/types/src/Multipass";
 
 export enum SearchCriteria {
   id,
@@ -15,6 +16,6 @@ export interface RegisterMessage {
   name: BytesLike;
   id: BytesLike;
   domainName: BytesLike;
-  deadline: BigNumber;
+  validUntil: BigNumber;
   nonce: BigNumber;
 }
