@@ -1,5 +1,11 @@
 # rankify-js
 
+## 1.1.0
+
+### Minor Changes
+
+- [#29](https://github.com/peeramid-labs/sdk/pull/29) [`1270766`](https://github.com/peeramid-labs/sdk/commit/1270766d47c5c10558441703d6defd8fe7b9b296) Thanks [@theKosmoss](https://github.com/theKosmoss)! - Added changes needed to support multipass as stanadlone package
+
 ## 1.0.1
 
 ### Patch Changes
