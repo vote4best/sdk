@@ -2,4 +2,4 @@
 "rankify-js": minor
 ---
 
-Added changes needed to use multipass api
+Added changes needed to support multipass as stanadlone package
