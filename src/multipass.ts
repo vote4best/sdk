@@ -1,6 +1,6 @@
 import { ethers, Wallet } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { LibMultipass } from "rankify-contracts/types/src/facets/DNSFacet";
+import { LibMultipass } from "@peeramid-labs/multipass/types/src/Multipass";
 import { RegisterMessage } from "./types";
 import { chainIdMapping, getArtifact, SupportedChains } from "./utils";
 export default class Multipass {
