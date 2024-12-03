@@ -15,8 +15,8 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3(ethers@5.7.2)(hardhat@2.19.1(ts-node@10.9.1(@types/node@17.0.45)(typescript@5.3.2))(typescript@5.3.2))
       '@peeramid-labs/multipass':
-        specifier: ^0.3.0
-        version: 0.3.0(hardhat@2.19.1(ts-node@10.9.1(@types/node@17.0.45)(typescript@5.3.2))(typescript@5.3.2))
+        specifier: ^0.3.1
+        version: 0.3.1(hardhat@2.19.1(ts-node@10.9.1(@types/node@17.0.45)(typescript@5.3.2))(typescript@5.3.2))
       '@peersky/eth-auth':
         specifier: ^2.0.0
         version: 2.1.1
@@ -463,8 +463,8 @@ packages:
   '@openzeppelin/contracts@5.1.0':
     resolution: {integrity: sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==}
 
-  '@peeramid-labs/multipass@0.3.0':
-    resolution: {integrity: sha512-ZQutiX5oULbTXtLxR4UBz4SpDvEA+498iKfdQAiLbXj8GTAfTOUagbUdYBcvuwCFgerzYmDkeCrScZDiQP6t9w==}
+  '@peeramid-labs/multipass@0.3.1':
+    resolution: {integrity: sha512-3QZqOlnxXdF7b8b+8HCY/bwK8EO8DgD6dRHNi5Cv5UHoEFW/ZwVRqVqCK2/TWofPwkB+gUulNNmKJ5U99Ek2CQ==}
 
   '@peersky/eth-auth@2.1.1':
     resolution: {integrity: sha512-vhz2IoSsYyiEL/wBtP250LGj1gwB4zsKelq4pAGG4woqb7EREM6V1lHG5kWIwtepGygAo/SwHK8DC5tEMXcWVQ==}
@@ -782,8 +782,8 @@ packages:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
 
-  axios@1.7.7:
-    resolution: {integrity: sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==}
+  axios@1.7.8:
+    resolution: {integrity: sha512-Uu0wb7KNqK2t5K+YQyVCLM76prD5sRFjKHbJYCP1J7JFGEQ6nN7HWn9+04LAeiJ3ji54lgS/gZCH1oxyrf1SPw==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -2119,8 +2119,8 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  qs@6.13.0:
-    resolution: {integrity: sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==}
+  qs@6.13.1:
+    resolution: {integrity: sha512-EJPeIn0CYrGu+hli1xilKAPXODtJ12T0sP63Ijx2/khC2JtuaN3JyNIpvmnkmaEtha9ocbG4A4cMcr+TvqvwQg==}
     engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
@@ -3481,7 +3481,7 @@ snapshots:
 
   '@openzeppelin/contracts@5.1.0': {}
 
-  '@peeramid-labs/multipass@0.3.0(hardhat@2.19.1(ts-node@10.9.1(@types/node@17.0.45)(typescript@5.3.2))(typescript@5.3.2))':
+  '@peeramid-labs/multipass@0.3.1(hardhat@2.19.1(ts-node@10.9.1(@types/node@17.0.45)(typescript@5.3.2))(typescript@5.3.2))':
     dependencies:
       '@ethersproject/abi': 5.7.0
       '@ethersproject/providers': 5.7.2
@@ -3866,7 +3866,7 @@ snapshots:
 
   available-typed-arrays@1.0.5: {}
 
-  axios@1.7.7:
+  axios@1.7.8:
     dependencies:
       follow-redirects: 1.15.9(debug@4.3.7)
       form-data: 4.0.1
@@ -4410,7 +4410,7 @@ snapshots:
   eth-gas-reporter@0.2.27:
     dependencies:
       '@solidity-parser/parser': 0.14.5
-      axios: 1.7.7
+      axios: 1.7.8
       cli-table3: 0.5.1
       colors: 1.4.0
       ethereum-cryptography: 1.2.0
@@ -5394,7 +5394,7 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  qs@6.13.0:
+  qs@6.13.1:
     dependencies:
       side-channel: 1.0.6
 
@@ -5815,7 +5815,7 @@ snapshots:
       http-basic: 8.1.3
       http-response-object: 3.0.2
       promise: 8.3.0
-      qs: 6.13.0
+      qs: 6.13.1
 
   tmp@0.0.33:
     dependencies:
