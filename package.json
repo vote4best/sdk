@@ -1,6 +1,6 @@
 {
-  "name": "rankify-js",
-  "description": "rankify.it client library",
+  "name": "@peeramid-labs/sdk",
+  "description": "Peeramid Labs js client library",
   "version": "1.1.0",
   "private": "true",
   "type": "module",
@@ -9,10 +9,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/rankify/sdk/main/README.md",
+  "homepage": "https://github.com/peeramid-labs/sdk/main/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rankify/sdk.git",
+    "url": "https://github.com/peeramid-labs/sdk.git",
     "directory": "."
   },
   "exports": {
