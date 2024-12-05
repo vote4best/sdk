@@ -1,30 +1,26 @@
 import { ethers, BigNumberish, BigNumber, ContractReceipt } from "ethers";
-import RankifyBase from "./InstanceBase";
+import InstanceBase from "./InstanceBase";
 import { SupportedChains } from "../utils/artifacts";
 import { RankifyDiamondInstance } from "rankify-contracts/types";
-import { RankToken } from "rankify-contracts/types";
 import { IRankifyInstance } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
 import { LibCoinVending } from "rankify-contracts/types/src/mocks/MockVendingMachine";
 // import { IRankifyInstance } from "rankify-contracts/types/src/interfaces/IRankifyInstance";
 
-export default class RankifyPlayer extends RankifyBase {
+export default class RankifyPlayer extends InstanceBase {
   signer: ethers.providers.JsonRpcSigner;
   constructor({
     signer,
     chain,
     rankifyInstance,
-    rankToken,
   }: {
     signer: ethers.providers.JsonRpcSigner;
     chain: SupportedChains;
     rankifyInstance: RankifyDiamondInstance;
-    rankToken: RankToken;
   }) {
     super({
       provider: signer.provider,
       chain,
       rankifyInstance,
-      rankToken,
     });
     this.signer = signer;
   }

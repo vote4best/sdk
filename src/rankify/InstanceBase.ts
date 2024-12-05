@@ -1,7 +1,7 @@
 import { ethers, BigNumberish, BigNumber } from "ethers";
 import { TurnEndedEventObject } from "rankify-contracts/types/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
 import { SupportedChains, ArtifactTypes, getArtifact, ApiError, ArtifactContractInterfaces } from "../utils/index";
-import { RankifyDiamondInstance, RankToken } from "rankify-contracts/types";
+import { RankifyDiamondInstance } from "rankify-contracts/types";
 import { deepArrayToObject } from "../utils";
 export enum gameStatusEnum {
   created = "Game created",
@@ -13,27 +13,23 @@ export enum gameStatusEnum {
   notFound = "not found",
 }
 
-export default class RankifyBase {
+export default class InstanceBase {
   provider: ethers.providers.JsonRpcProvider;
   chain: SupportedChains;
   rankifyInstance: RankifyDiamondInstance;
-  rankToken: RankToken;
 
   constructor({
     provider,
     chain,
     rankifyInstance,
-    rankToken,
   }: {
     provider: ethers.providers.JsonRpcProvider;
     chain: SupportedChains;
     rankifyInstance: RankifyDiamondInstance;
-    rankToken: RankToken;
   }) {
     this.provider = provider;
     this.chain = chain;
     this.rankifyInstance = rankifyInstance;
-    this.rankToken = rankToken;
   }
 
   /**
@@ -214,14 +210,6 @@ export default class RankifyBase {
 
   getPlayersGame = async (account: string) => {
     return this.rankifyInstance.getPlayersGame(account);
-  };
-
-  getRankTokenURI = async () => {
-    return this.rankToken.contractURI().then((x) => deepArrayToObject(x));
-  };
-
-  getRankTokenBalance = async (tokenId: string, account: string) => {
-    return this.rankToken.balanceOf(account, tokenId);
   };
 
   /**

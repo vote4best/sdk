@@ -1,13 +1,17 @@
-import { ethers, BigNumberish } from "ethers";
-import RankifyBase from "./rankify/RankifyInstanceBase";
-import { SupportedChains, getArtifact } from "./utils/artifacts";
+import { RankToken } from "rankify-contracts/types";
 
-export default class RankToken {
-  provider: ethers.providers.JsonRpcProvider;
-  chain: SupportedChains;
+export default class RankTokenClient {
+  rankToken: RankToken;
 
-  constructor({ provider, chain }: { provider: ethers.providers.JsonRpcProvider; chain: SupportedChains }) {
-    this.provider = provider;
-    this.chain = chain;
+  constructor({ rankToken }: { rankToken: RankToken }) {
+    this.rankToken = rankToken;
   }
+
+  getRankTokenURI = async () => {
+    return this.rankToken.contractURI();
+  };
+
+  getRankTokenBalance = async (tokenId: string, account: string) => {
+    return this.rankToken.balanceOf(account, tokenId);
+  };
 }
