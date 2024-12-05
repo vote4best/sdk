@@ -23,7 +23,7 @@ export interface MAOInstanceContracts {
   ACIDAccessManager: SimpleAccessManager;
 }
 
-export class MAODistributionClient extends DistributorClient {
+export class MAODistributorClient extends DistributorClient {
   private static readonly DEFAULT_NAME = "MAO Distribution";
   private _signerOrProvider: Signer | providers.Provider;
   private govtAccessManagerAbi;
@@ -87,7 +87,7 @@ export class MAODistributionClient extends DistributorClient {
    * @param name Distribution name (defaults to "MAO Distribution")
    * @returns Array of MAOInstances contract instances
    */
-  async getMAOInstances(name: string = MAODistributionClient.DEFAULT_NAME): Promise<MAOInstanceContracts[]> {
+  async getMAOInstances(name: string = MAODistributorClient.DEFAULT_NAME): Promise<MAOInstanceContracts[]> {
     const distributionId = ethers.utils.formatBytes32String(name);
 
     const instances = await this.getNamedDistributionInstances({ namedDistribution: distributionId });
@@ -96,7 +96,7 @@ export class MAODistributionClient extends DistributorClient {
   }
 
   async getMAOInstance(
-    name: string = MAODistributionClient.DEFAULT_NAME,
+    name: string = MAODistributorClient.DEFAULT_NAME,
     instanceId: number,
   ): Promise<MAOInstanceContracts> {
     const distributionId = ethers.utils.formatBytes32String(name);
@@ -112,7 +112,7 @@ export class MAODistributionClient extends DistributorClient {
    */
   async instantiate(
     args: MAODistribution.DistributorArgumentsStruct,
-    name: string = MAODistributionClient.DEFAULT_NAME,
+    name: string = MAODistributorClient.DEFAULT_NAME,
   ): Promise<MAOInstanceContracts> {
     const tx = await this.getContract().instantiate(
       ethers.utils.formatBytes32String(name),
