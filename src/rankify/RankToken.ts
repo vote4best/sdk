@@ -1,5 +1,5 @@
 import { ethers, BigNumberish } from "ethers";
-import RankifyBase from "./RankifyBase";
+import RankifyBase from "./rankify/RankifyInstanceBase";
 import { SupportedChains, getArtifact } from "./utils/artifacts";
 
 export default class RankToken {
