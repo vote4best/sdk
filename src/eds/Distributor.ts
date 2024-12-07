@@ -1,5 +1,5 @@
 import { type Address, stringToHex, getContract, Hex, PublicClient } from "viem";
-import DistributorAbi from "@peeramid-labs/eds/abi/src/interfaces/IDistributor.sol/IDistributor";
+import DistributorAbi from "../abis/Distributor";
 
 export class DistributorClient {
   publicClient: PublicClient;

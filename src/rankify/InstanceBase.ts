@@ -1,7 +1,7 @@
 import { Address, PublicClient, type GetContractReturnType, type Block } from "viem";
 import { SupportedChains, ApiError } from "../utils/index";
 
-import instanceAbi from "rankify-contracts/abi/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
+import instanceAbi from "../abis/RankifyDiamondInstance";
 
 export enum gameStatusEnum {
   created = "Game created",
@@ -140,30 +140,32 @@ export default class InstanceBase {
    * @returns The ongoing proposals for the specified game.
    */
   getOngoingProposals = async (gameId: bigint) => {
-    const currentTurn = (await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    })) as bigint;
+    try {
+      const currentTurn = (await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getTurn",
+        args: [gameId],
+      })) as bigint;
 
-    const lastTurnEndedEvent = await this.publicClient.getContractEvents({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      eventName: "TurnEnded",
-      args: {
-        gameId,
-        turn: currentTurn - 1n,
-      },
-      fromBlock: 0n,
-    });
+      const lastTurnEndedEvent = await this.publicClient.getContractEvents({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        eventName: "TurnEnded",
+        args: { turn: currentTurn - 1n, gameId },
+      });
 
-    if (lastTurnEndedEvent.length !== 1) {
-      console.error("getOngoingProposals", gameId, "failed:", lastTurnEndedEvent.length);
-      throw new ApiError("Game not found", { status: 404 });
+      if (lastTurnEndedEvent.length !== 1) {
+        console.error("getOngoingProposals", gameId, "failed:", lastTurnEndedEvent.length);
+        throw new ApiError("Game not found", { status: 404 });
+      }
+
+      const args = lastTurnEndedEvent[0].args as { newProposals: unknown[] };
+      return args.newProposals;
+    } catch (error) {
+      console.error("Error in getOngoingProposals:", error);
+      return [];
     }
-
-    return lastTurnEndedEvent[0].args.newProposals;
   };
 
   /**

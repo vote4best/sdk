@@ -2,10 +2,10 @@ import { DistributorClient } from "../eds/Distributor";
 import { getArtifact } from "../utils";
 import { SupportedChains } from "../utils";
 import { MAOInstances, parseInstantiated } from "rankify-contracts/scripts/parseInstantiated";
-import instanceAbi from "rankify-contracts/abi/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
-import rankTokenAbi from "rankify-contracts/abi/src/tokens/RankToken.sol/RankToken";
-import govtTokenAbi from "rankify-contracts/abi/src/tokens/DistributableGovernanceERC20.sol/DistributableGovernanceERC20";
-import govtAccessManagerAbi from "@peeramid-labs/eds/abi/src/managers/SimpleAccessManager.sol/SimpleAccessManager";
+import instanceAbi from "../abis/RankifyDiamondInstance";
+import rankTokenAbi from "../abis/RankToken";
+import govtTokenAbi from "../abis/DistributableGovernanceERC20";
+import govtAccessManagerAbi from "../abis/SimpleAccessManager";
 import {
   getAddress,
   getContract,
@@ -55,7 +55,7 @@ export class MAODistributorClient extends DistributorClient {
   walletClient: WalletClient;
 
   constructor(chainName: SupportedChains, client: { publicClient: PublicClient; walletClient: WalletClient }) {
-    const { address } = getArtifact(chainName, "Distributor");
+    const { address } = getArtifact(chainName, "DAODistributor");
     super({ address: getAddress(address), publicClient: client.publicClient });
     this.walletClient = client.walletClient;
   }
@@ -112,21 +112,58 @@ export class MAODistributorClient extends DistributorClient {
 
   /**
    * Get MAOInstances instances by distribution name
-   * @param name Distribution name (defaults to "MAO Distribution")
+   * @param namedDistribution Distribution name (defaults to "MAO Distribution")
    * @returns Array of MAOInstances contract instances
    */
-  async getMAOInstances(name: string = MAODistributorClient.DEFAULT_NAME): Promise<MAOInstanceContracts[]> {
-    const instances = await this.getNamedDistributionInstances({ namedDistribution: stringToHex(name, { size: 32 }) });
-    return instances.map((i) => parseInstantiated(i)).map((ip) => this.addressesToContracts(ip));
+  async getNamedMAODistributionInstances(namedDistribution: string): Promise<MAOInstanceContracts[]> {
+    const logs = await this.publicClient.getContractEvents({
+      address: this.address,
+      abi: distributorAbi,
+      eventName: "Instantiated",
+      args: {
+        distributionId: stringToHex(namedDistribution, { size: 32 }),
+      },
+    });
+
+    const instances = logs
+      .map((l) => parseInstantiated(l.args.instances as string[]))
+      .map((ip) => this.addressesToContracts(ip));
+
+    if (instances.length === 0) {
+      console.error("No instances found");
+      throw new Error(`No instances found for distribution ${namedDistribution}`);
+    }
+
+    return instances;
   }
 
   async getMAOInstance(
     name: string = MAODistributorClient.DEFAULT_NAME,
     instanceId: bigint,
   ): Promise<MAOInstanceContracts> {
-    return this.getInstance(stringToHex(name, { size: 32 }), instanceId)
-      .then((i) => parseInstantiated(i))
-      .then((ip) => this.addressesToContracts(ip));
+    const logs = await this.publicClient.getContractEvents({
+      address: this.address,
+      abi: distributorAbi,
+      eventName: "Instantiated",
+      args: {
+        distributionId: stringToHex(name, { size: 32 }),
+        newInstanceId: instanceId,
+      },
+    });
+
+    if (logs.length === 0) {
+      console.error("No instance found");
+      throw new Error(`No instance found for distribution ${name} and id ${instanceId}`);
+    }
+
+    if (logs.length > 1) {
+      console.error("Multiple instances found");
+      throw new Error(`Multiple instances found for distribution ${name} and id ${instanceId}`);
+    }
+
+    const { instances } = logs[0].args;
+    if (!instances) throw new Error(`No instances found for distribution ${name} and id ${instanceId}`);
+    return this.addressesToContracts(parseInstantiated(instances as string[]));
   }
 
   /**

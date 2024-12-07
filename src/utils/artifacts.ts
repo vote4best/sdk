@@ -7,11 +7,11 @@ import {
   AbiItem,
 } from "viem";
 
-import rankifyAbi from "rankify-contracts/abi/src/tokens/Rankify.sol/Rankify";
-import instanceAbi from "rankify-contracts/abi/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
-import rankTokenAbi from "rankify-contracts/abi/src/tokens/RankToken.sol/RankToken";
-import multipassAbi from "@peeramid-labs/multipass/abi/src/Multipass.sol/Multipass";
-import simpleAccessManagerAbi from "@peeramid-labs/eds/abi/src/managers/SimpleAccessManager.sol/SimpleAccessManager";
+import rankifyAbi from "../abis/Rankify";
+import rankTokenAbi from "../abis/RankToken";
+import multipassAbi from "../abis/Multipass";
+import simpleAccessManagerAbi from "../abis/SimpleAccessManager";
+import DAODistributorabi from "../abis/DAODistributor";
 export type SupportedChains = "anvil" | "localhost";
 
 export const chainIdMapping: { [key in SupportedChains]: string } = {
@@ -19,11 +19,11 @@ export const chainIdMapping: { [key in SupportedChains]: string } = {
   localhost: "42161",
 };
 
-export type ArtifactTypes = "Rankify" | "Distributor" | "RankToken" | "Multipass" | "SimpleAccessManager";
+export type ArtifactTypes = "Rankify" | "DAODistributor" | "RankToken" | "Multipass" | "SimpleAccessManager";
 
 export type ArtifactAbi = {
   Rankify: typeof rankifyAbi;
-  Distributor: typeof instanceAbi;
+  DAODistributor: typeof DAODistributorabi;
   RankToken: typeof rankTokenAbi;
   Multipass: typeof multipassAbi;
   SimpleAccessManager: typeof simpleAccessManagerAbi;

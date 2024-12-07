@@ -5,11 +5,13 @@ import {
   type Hex,
   parseEventLogs,
   GetAbiItemParameters,
+  GetAbiItemReturnType,
+  ContractFunctionArgs,
 } from "viem";
 import { getContract, SupportedChains } from "../utils/artifacts";
-import instanceAbi from "rankify-contracts/abi/hardhat-diamond-abi/HardhatDiamondABI.sol/RankifyDiamondInstance";
+import instanceAbi from "../abis/RankifyDiamondInstance";
 import InstanceBase from "./InstanceBase";
-
+type stateMutability = "nonpayable" | "payable";
 export type NewGameParams = {
   minGameTime: bigint;
   maxGameTime: bigint;
@@ -75,13 +77,16 @@ export default class RankifyPlayer extends InstanceBase {
     }
   };
 
-  createGame = async (newGameParams: GetAbiItemParameters<typeof instanceAbi, "createGame">["args"]) => {
-    if (!newGameParams) throw new Error("newGameParams is required");
+  createGame = async (creationArgs: ContractFunctionArgs<typeof instanceAbi, stateMutability, "createGame">[0]) => {
+    // if (!creationArgs) throw new Error("args is required");
+    const estimationArgs: ContractFunctionArgs<typeof instanceAbi, "pure" | "view", "estimateGamePrice"> = [
+      creationArgs.minGameTime,
+    ];
     const price = await this.publicClient.readContract({
       address: this.instanceAddress,
       abi: instanceAbi,
       functionName: "estimateGamePrice",
-      args: [newGameParams[0].minGameTime],
+      args: estimationArgs,
     });
 
     await this.approveTokensIfNeeded(price as bigint);
@@ -90,25 +95,34 @@ export default class RankifyPlayer extends InstanceBase {
       address: this.instanceAddress,
       abi: instanceAbi,
       functionName: "createGame",
-      args: [newGameParams[0]],
-      account: this.walletClient.account?.address,
+      args: [creationArgs],
+      account: this.walletClient.account.address,
     });
 
     const hash = await this.walletClient.writeContract(request);
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
 
-    const gameCreatedEvent = parseEventLogs({
+    const events = await this.publicClient.getContractEvents({
+      address: this.instanceAddress,
       abi: instanceAbi,
-      logs: receipt.logs,
       eventName: "gameCreated",
-    })[0];
+      args: {},
+      fromBlock: receipt.blockNumber,
+      toBlock: receipt.blockNumber,
+    });
 
-    if (!gameCreatedEvent) {
-      throw new Error("Failed to create game: gameCreated event not found");
+    if (events.length > 1) {
+      throw new Error("Failed to create game: Multiple GameCreated events found");
     }
+    if (events.length === 0) {
+      throw new Error("Failed to create game: GameCreated event not found");
+    }
+    if (!events[0].args) throw new Error("Failed to create game: Event args not found");
+    if (!("gameId" in events[0].args)) throw new Error("Failed to create game: GameId not found");
+    const { gameId } = events[0].args;
 
     return {
-      gameId: gameCreatedEvent.args.gameId as bigint,
+      gameId,
       receipt,
     };
   };

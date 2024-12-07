@@ -24,7 +24,7 @@
   "scripts": {
     "lint:fix": "prettier --write '**/*.ts' && eslint --fix --no-ignore",
     "lint": "eslint",
-    "prebuild": "jq '.type = \"commonjs\"' package.json > temp.json && mv temp.json package.json",
+    "prebuild": "node scripts/copyAbi.js && jq '.type = \"commonjs\"' package.json > temp.json && mv temp.json package.json",
     "build-esm": "tsc --project tsconfig.esm.json",
     "build-all": "pnpm run build-commonjs && pnpm run build-esm",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
