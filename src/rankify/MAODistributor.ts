@@ -21,8 +21,8 @@ import {
   WalletClient,
   parseEventLogs,
 } from "viem";
-import MaoDistributionAbi from "rankify-contracts/abi/src/distributions/MAODistribution.sol/MAODistribution";
-import distributorAbi from "@peeramid-labs/eds/abi/src/interfaces/IDistributor.sol/IDistributor";
+import MaoDistributionAbi from "../abis/MAODistribution";
+import distributorAbi from "../abis/IDistributor";
 
 export type TokenArgumentsStructOutput = {
   tokenName: string;
