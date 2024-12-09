@@ -1,5 +1,5 @@
 {
-  "name": "@peeramid-labs/sdk",
+  "name": "rankify-js",
   "description": "Peeramid Labs js client library",
   "version": "1.1.0",
   "private": "true",
@@ -24,7 +24,8 @@
   "scripts": {
     "lint:fix": "prettier --write '**/*.ts' && eslint --fix --no-ignore",
     "lint": "eslint",
-    "prebuild": "node scripts/copyAbi.js && jq '.type = \"commonjs\"' package.json > temp.json && mv temp.json package.json",
+    "generate-chain-mapping": "node ./scripts/generateChainMapping.js",
+    "prebuild": "pnpm generate-chain-mapping && node scripts/copyAbi.js | jq '.type = \"commonjs\"' package.json > temp.json && mv temp.json package.json",
     "build-esm": "tsc --project tsconfig.esm.json",
     "build-all": "pnpm run build-commonjs && pnpm run build-esm",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
@@ -59,6 +60,7 @@
     "eslint-plugin-promise": "^7.1.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.3.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "ts-node": "^10.9.2"
   }
 }
