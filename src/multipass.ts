@@ -40,7 +40,7 @@ export default class Multipass {
     publicClient: PublicClient;
     walletClient: WalletClient;
   }) {
-    const artifact = getArtifact(chain.name as SupportedChains, "Multipass");
+    const artifact = getArtifact(chain, "Multipass");
     this.chainId = chain.id;
     this.name = artifact.execute.args[0];
     this.version = artifact.execute.args[1];

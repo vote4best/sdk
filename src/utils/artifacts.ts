@@ -5,6 +5,7 @@ import {
   getContract as viemGetContract,
   type GetContractReturnType,
   AbiItem,
+  type Chain,
 } from "viem";
 
 import rankifyAbi from "../abis/Rankify";
@@ -12,6 +13,9 @@ import rankTokenAbi from "../abis/RankToken";
 import multipassAbi from "../abis/Multipass";
 import simpleAccessManagerAbi from "../abis/SimpleAccessManager";
 import DAODistributorabi from "../abis/DAODistributor";
+
+import { chainToPath, getChainPath } from "./chainMapping";
+
 export type SupportedChains = "anvil" | "localhost";
 
 export const chainIdMapping: { [key in SupportedChains]: string } = {
@@ -19,31 +23,33 @@ export const chainIdMapping: { [key in SupportedChains]: string } = {
   localhost: "42161",
 };
 
-export type ArtifactTypes = "Rankify" | "DAODistributor" | "RankToken" | "Multipass" | "SimpleAccessManager";
+export type ArtifactTypes = "Rankify" | "Multipass" | "SimpleAccessManager" | "DAODistributor";
 
 export type ArtifactAbi = {
   Rankify: typeof rankifyAbi;
-  DAODistributor: typeof DAODistributorabi;
-  RankToken: typeof rankTokenAbi;
   Multipass: typeof multipassAbi;
   SimpleAccessManager: typeof simpleAccessManagerAbi;
+  DAODistributor: typeof DAODistributorabi;
 };
 
 /**
  * Retrieves the contract artifact for the specified chain.
- * @param chain The chain identifier.
+ * @param chain The viem Chain object
  * @param artifactName The name of the artifact to retrieve
  * @returns The artifact containing the address and execution args
- * @throws Error if the contract deployment is not found.
+ * @throws Error if the contract deployment is not found or chain is not supported.
  */
 export const getArtifact = (
-  chain: SupportedChains,
+  chain: Chain,
   artifactName: ArtifactTypes,
+  overrideChainName?: string,
 ): { abi: readonly AbiItem[]; address: Address; execute: { args: string[] } } => {
+  const chainPath = overrideChainName ?? getChainPath(chain);
   const artifact =
     artifactName === "Multipass"
-      ? require(`@peeramid-labs/multipass/deployments/${chain}/${artifactName}.json`)
-      : require(`rankify-contracts/deployments/${chain}/${artifactName}.json`);
+      ? require(`@peeramid-labs/multipass/deployments/${chainPath}/${artifactName}.json`)
+      : require(`rankify-contracts/deployments/${chainPath}/${artifactName}.json`);
+
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
@@ -62,7 +68,7 @@ export const getArtifact = (
  * @returns A viem contract instance
  */
 export const getContract = <TArtifactName extends ArtifactTypes, TClient extends PublicClient | WalletClient>(
-  chain: SupportedChains,
+  chain: Chain,
   artifactName: TArtifactName,
   client: TClient,
 ): GetContractReturnType<ArtifactAbi[TArtifactName], TClient> => {
