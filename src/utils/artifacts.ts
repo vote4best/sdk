@@ -53,7 +53,6 @@ export const getArtifact = (
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
-
   return {
     address: artifact.address as Address,
     execute: artifact.execute,

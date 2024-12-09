@@ -9,6 +9,7 @@ import {
   isAddress,
   SignTypedDataParameters,
   TypedDataDomain,
+  Chain,
 } from "viem";
 import { getArtifact, type SupportedChains } from "./utils";
 import multipassAbi from "@peeramid-labs/multipass/abi/src/Multipass.sol/Multipass";
@@ -23,7 +24,7 @@ export type NameQuery = {
 };
 
 export default class Multipass {
-  private chainId: string;
+  private chainId: number;
   private name: string;
   private version: string;
   private publicClient: PublicClient;
@@ -31,16 +32,16 @@ export default class Multipass {
   private instanceAddress: Address;
 
   constructor({
-    chainName,
+    chain,
     publicClient,
     walletClient,
   }: {
-    chainName: SupportedChains;
+    chain: Chain;
     publicClient: PublicClient;
     walletClient: WalletClient;
   }) {
-    const artifact = getArtifact(chainName, "Multipass");
-    this.chainId = chainName;
+    const artifact = getArtifact(chain, "Multipass");
+    this.chainId = chain.id;
     this.name = artifact.execute.args[0];
     this.version = artifact.execute.args[1];
     this.instanceAddress = artifact.address;
@@ -68,7 +69,7 @@ export default class Multipass {
     const domain: TypedDataDomain = {
       name: this.name,
       version: this.version,
-      chainId: BigInt(this.chainId),
+      chainId: this.chainId,
       verifyingContract: verifierAddress,
     };
 
