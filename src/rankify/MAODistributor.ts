@@ -1,6 +1,5 @@
 import { DistributorClient } from "../eds/Distributor";
 import { getArtifact } from "../utils";
-import { SupportedChains } from "../utils";
 import { MAOInstances, parseInstantiated } from "rankify-contracts/scripts/parseInstantiated";
 import instanceAbi from "../abis/RankifyDiamondInstance";
 import rankTokenAbi from "../abis/RankToken";
@@ -54,8 +53,8 @@ export class MAODistributorClient extends DistributorClient {
   private static readonly DEFAULT_NAME = "MAO Distribution";
   walletClient: WalletClient;
 
-  constructor(chainName: SupportedChains, client: { publicClient: PublicClient; walletClient: WalletClient }) {
-    const { address } = getArtifact(chainName, "DAODistributor");
+  constructor(chainId: number, client: { publicClient: PublicClient; walletClient: WalletClient }) {
+    const { address } = getArtifact(chainId, "DAODistributor");
     super({ address: getAddress(address), publicClient: client.publicClient });
     this.walletClient = client.walletClient;
   }

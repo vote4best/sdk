@@ -40,11 +40,11 @@ export type ArtifactAbi = {
  * @throws Error if the contract deployment is not found or chain is not supported.
  */
 export const getArtifact = (
-  chain: Chain,
+  chainId: number,
   artifactName: ArtifactTypes,
   overrideChainName?: string,
 ): { abi: readonly AbiItem[]; address: Address; execute: { args: string[] } } => {
-  const chainPath = overrideChainName ?? getChainPath(chain);
+  const chainPath = overrideChainName ?? getChainPath(chainId);
   const artifact =
     artifactName === "Multipass"
       ? require(`@peeramid-labs/multipass/deployments/${chainPath}/${artifactName}.json`)
@@ -68,11 +68,11 @@ export const getArtifact = (
  * @returns A viem contract instance
  */
 export const getContract = <TArtifactName extends ArtifactTypes, TClient extends PublicClient | WalletClient>(
-  chain: Chain,
+  chainId: number,
   artifactName: TArtifactName,
   client: TClient,
 ): GetContractReturnType<ArtifactAbi[TArtifactName], TClient> => {
-  const artifact = getArtifact(chain, artifactName);
+  const artifact = getArtifact(chainId, artifactName);
   return viemGetContract({
     address: artifact.address,
     abi: artifact.abi,

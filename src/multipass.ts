@@ -3,16 +3,12 @@ import {
   type PublicClient,
   type WalletClient,
   type Hex,
-  getContract,
   stringToHex,
   zeroAddress,
   isAddress,
-  SignTypedDataParameters,
   TypedDataDomain,
-  Chain,
 } from "viem";
-import { getArtifact, type SupportedChains } from "./utils";
-import multipassAbi from "@peeramid-labs/multipass/abi/src/Multipass.sol/Multipass";
+import { getArtifact } from "./utils";
 import type { RegisterMessage } from "./types";
 
 export type NameQuery = {
@@ -32,16 +28,16 @@ export default class Multipass {
   private instanceAddress: Address;
 
   constructor({
-    chain,
+    chainId,
     publicClient,
     walletClient,
   }: {
-    chain: Chain;
+    chainId: number;
     publicClient: PublicClient;
     walletClient: WalletClient;
   }) {
-    const artifact = getArtifact(chain, "Multipass");
-    this.chainId = chain.id;
+    const artifact = getArtifact(chainId, "Multipass");
+    this.chainId = chainId;
     this.name = artifact.execute.args[0];
     this.version = artifact.execute.args[1];
     this.instanceAddress = artifact.address;

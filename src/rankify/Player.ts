@@ -8,7 +8,7 @@ import {
   GetAbiItemReturnType,
   ContractFunctionArgs,
 } from "viem";
-import { getContract, SupportedChains } from "../utils/artifacts";
+import { getContract } from "../utils/artifacts";
 import instanceAbi from "../abis/RankifyDiamondInstance";
 import InstanceBase from "./InstanceBase";
 type stateMutability = "nonpayable" | "payable";
@@ -41,19 +41,19 @@ export default class RankifyPlayer extends InstanceBase {
   constructor({
     publicClient,
     walletClient,
-    chain,
+    chainId,
     instanceAddress,
     account,
   }: {
     publicClient: PublicClient;
     walletClient: WalletClient;
-    chain: SupportedChains;
+    chainId: number;
     instanceAddress: Address;
     account: Address;
   }) {
     super({
       publicClient,
-      chain,
+      chainId,
       instanceAddress,
     });
     this.walletClient = walletClient;
@@ -61,7 +61,7 @@ export default class RankifyPlayer extends InstanceBase {
   }
 
   approveTokensIfNeeded = async (value: bigint) => {
-    const tokenContract = getContract(this.chain, "Rankify", this.walletClient);
+    const tokenContract = getContract(this.chainId, "Rankify", this.walletClient);
     if (this.walletClient.account?.address) throw new Error("Account not found");
     if (value > 0n) {
       const { request } = await this.publicClient.simulateContract({

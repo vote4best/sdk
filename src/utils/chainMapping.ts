@@ -1,6 +1,4 @@
 // This file is auto-generated. Do not edit manually.
-import { type Chain } from "viem";
-
 export type ChainMapping = Record<number, string>;
 
 export const chainToPath: ChainMapping = {
@@ -8,10 +6,10 @@ export const chainToPath: ChainMapping = {
   "97113": "anvil",
 } as const;
 
-export function getChainPath(chain: Chain): string {
-  const path = chainToPath[chain.id];
+export function getChainPath(chainId: number): string {
+  const path = chainToPath[chainId];
   if (!path) {
-    throw new Error(`Chain ${chain.name} (ID: ${chain.id}) is not supported`);
+    throw new Error(`Chain ID ${chainId} is not supported`);
   }
   return path;
 }

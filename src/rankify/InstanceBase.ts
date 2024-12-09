@@ -1,5 +1,5 @@
 import { Address, PublicClient, type GetContractReturnType, type Block } from "viem";
-import { SupportedChains, ApiError } from "../utils/index";
+import { ApiError } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
 
@@ -17,20 +17,20 @@ export type RankifyContract = GetContractReturnType<typeof instanceAbi, PublicCl
 
 export default class InstanceBase {
   publicClient: PublicClient;
-  chain: SupportedChains;
+  chainId: number;
   instanceAddress: Address;
 
   constructor({
     publicClient,
-    chain,
+    chainId,
     instanceAddress,
   }: {
     publicClient: PublicClient;
-    chain: SupportedChains;
+    chainId: number;
     instanceAddress: Address;
   }) {
     this.publicClient = publicClient;
-    this.chain = chain;
+    this.chainId = chainId;
     this.instanceAddress = instanceAddress;
   }
 
