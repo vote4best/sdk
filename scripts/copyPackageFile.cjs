@@ -10,11 +10,12 @@ const copyPackageFile = () => {
   //   packageJson.dependencies["rankify-contracts"] = "file:../../contracts";
   // }
   packageJson.type = "commonjs";
-  packageJson.main = "./lib.commonjs/index.js";
-  packageJson.module = "./lib.esm/index.js";
+  packageJson.main = "./lib.commonjs/src/index.js";
+  packageJson.module = "./lib.esm/src/index.js";
   packageJson.exports["."] = {
     require: "./lib.commonjs/index.js",
-    default: "./lib.esm/index.js",
+    import: "./lib.esm/src/index.js",
+    default: "./lib.esm/src/index.js",
   };
   const tsconfig = require("../tsconfig.json");
   writeFileSync(path.join(tsconfig.compilerOptions.outDir, "package.json"), JSON.stringify(packageJson, null, 2));
