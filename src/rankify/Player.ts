@@ -60,7 +60,7 @@ export default class RankifyPlayer extends InstanceBase {
 
   approveTokensIfNeeded = async (value: bigint) => {
     const tokenContract = getContract(this.chainId, "Rankify", this.walletClient);
-    if (this.walletClient.account?.address) throw new Error("Account not found");
+    if (!this.walletClient.account?.address) throw new Error("Account not found");
     if (value > 0n) {
       const { request } = await this.publicClient.simulateContract({
         address: tokenContract.address,
