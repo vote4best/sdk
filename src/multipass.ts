@@ -45,7 +45,7 @@ export default class Multipass {
     this.walletClient = walletClient;
   }
 
-  public getDappURL(message: any, signature: string, basepath: string, contractAddress: string, domain: string) {
+  public getDappURL(message: object, signature: string, basepath: string, contractAddress: string) {
     return (
       basepath +
       "/?message=" +
@@ -121,7 +121,7 @@ export default class Multipass {
     return {
       name: stringToHex("", { size: 32 }),
       id: stringToHex("", { size: 32 }),
-      wallet: address as Address,
+      wallet: address,
       domainName: stringToHex(domainName, { size: 32 }),
       targetDomain: stringToHex(targetDomain ?? "", { size: 32 }),
     };
@@ -200,7 +200,7 @@ export default class Multipass {
     return {
       name: stringToHex(username, { size: 32 }),
       id: stringToHex(id, { size: 32 }),
-      wallet: address as Address,
+      wallet: address,
       domainName: stringToHex(domainName, { size: 32 }),
       targetDomain: stringToHex(targetDomain ?? "", { size: 32 }),
     };

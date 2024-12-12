@@ -5,16 +5,14 @@ import {
   getContract as viemGetContract,
   type GetContractReturnType,
   AbiItem,
-  type Chain,
 } from "viem";
 
 import rankifyAbi from "../abis/Rankify";
-import rankTokenAbi from "../abis/RankToken";
 import multipassAbi from "../abis/Multipass";
 import simpleAccessManagerAbi from "../abis/SimpleAccessManager";
 import DAODistributorabi from "../abis/DAODistributor";
 
-import { chainToPath, getChainPath } from "./chainMapping";
+import { getChainPath } from "./chainMapping";
 
 export type SupportedChains = "anvil" | "localhost";
 
@@ -42,19 +40,24 @@ export type ArtifactAbi = {
 export const getArtifact = (
   chainId: number,
   artifactName: ArtifactTypes,
-  overrideChainName?: string,
+  overrideChainName?: string
 ): { abi: readonly AbiItem[]; address: Address; execute: { args: string[] } } => {
   const chainPath = overrideChainName ?? getChainPath(chainId);
-  const artifact =
+  const artifact = (
     artifactName === "Multipass"
       ? require(`@peeramid-labs/multipass/deployments/${chainPath}/${artifactName}.json`)
-      : require(`rankify-contracts/deployments/${chainPath}/${artifactName}.json`);
+      : require(`rankify-contracts/deployments/${chainPath}/${artifactName}.json`)
+  ) as {
+    abi: AbiItem[];
+    address: Address;
+    execute: { args: string[] };
+  };
 
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
   return {
-    address: artifact.address as Address,
+    address: artifact.address,
     execute: artifact.execute,
     abi: artifact.abi,
   };
@@ -70,7 +73,7 @@ export const getArtifact = (
 export const getContract = <TArtifactName extends ArtifactTypes, TClient extends PublicClient | WalletClient>(
   chainId: number,
   artifactName: TArtifactName,
-  client: TClient,
+  client: TClient
 ): GetContractReturnType<ArtifactAbi[TArtifactName], TClient> => {
   const artifact = getArtifact(chainId, artifactName);
   return viemGetContract({

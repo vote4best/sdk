@@ -11,7 +11,6 @@ import {
   GetContractReturnType,
   isAddress,
   Chain,
-  Hex,
   encodeAbiParameters,
   GetAbiItemParameters,
   getAbiItem,
@@ -138,7 +137,7 @@ export class MAODistributorClient extends DistributorClient {
 
   async getMAOInstance(
     name: string = MAODistributorClient.DEFAULT_NAME,
-    instanceId: bigint,
+    instanceId: bigint
   ): Promise<MAOInstanceContracts> {
     const logs = await this.publicClient.getContractEvents({
       address: this.address,
@@ -173,7 +172,7 @@ export class MAODistributorClient extends DistributorClient {
   async instantiate(
     args: GetAbiItemParameters<typeof MaoDistributionAbi, "distributionSchema">["args"],
     name: string = MAODistributorClient.DEFAULT_NAME,
-    chain: Chain,
+    chain: Chain
   ): Promise<MAOInstanceContracts> {
     if (!args) throw new Error("args is required");
     const abiItem = getAbiItem({ abi: MaoDistributionAbi, name: "distributionSchema" });

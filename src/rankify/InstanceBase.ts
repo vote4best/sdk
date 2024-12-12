@@ -64,12 +64,12 @@ export default class InstanceBase {
    * @returns The previous turn information for the specified game.
    */
   getPreviousTurnStats = async (gameId: bigint) => {
-    const currentTurn = (await this.publicClient.readContract({
+    const currentTurn = await this.publicClient.readContract({
       address: this.instanceAddress,
       abi: instanceAbi,
       functionName: "getTurn",
       args: [gameId],
-    })) as bigint;
+    });
 
     if (currentTurn > 1n) {
       return this.getHistoricTurn(gameId, currentTurn - 1n);
@@ -122,12 +122,12 @@ export default class InstanceBase {
    */
   getOngoingVoting = async (gameId: bigint) => {
     try {
-      const turn = (await this.publicClient.readContract({
+      const turn = await this.publicClient.readContract({
         address: this.instanceAddress,
         abi: instanceAbi,
         functionName: "getTurn",
         args: [gameId],
-      })) as bigint;
+      });
       return this.getVoting(gameId, turn);
     } catch (error) {
       console.error(error);
@@ -141,12 +141,12 @@ export default class InstanceBase {
    */
   getOngoingProposals = async (gameId: bigint) => {
     try {
-      const currentTurn = (await this.publicClient.readContract({
+      const currentTurn = await this.publicClient.readContract({
         address: this.instanceAddress,
         abi: instanceAbi,
         functionName: "getTurn",
         args: [gameId],
-      })) as bigint;
+      });
 
       const lastTurnEndedEvent = await this.publicClient.getContractEvents({
         address: this.instanceAddress,
@@ -234,12 +234,12 @@ export default class InstanceBase {
   getTurnDeadline = async (gameId: bigint, timePerTurn?: number) => {
     if (!gameId) throw new Error("gameId not set");
 
-    const currentTurn = (await this.publicClient.readContract({
+    const currentTurn = await this.publicClient.readContract({
       address: this.instanceAddress,
       abi: instanceAbi,
       functionName: "getTurn",
       args: [gameId],
-    })) as bigint;
+    });
 
     if (currentTurn === 0n) return 0;
 
@@ -250,7 +250,7 @@ export default class InstanceBase {
       address: this.instanceAddress,
       abi: instanceAbi,
       eventName: eventName,
-      args,
+      args: args,
     });
 
     if (logs.length !== 1) {
@@ -421,7 +421,7 @@ export default class InstanceBase {
           functionName: "getJoinRequirementsByToken",
           args: [gameId, address, joinRequirements.contractIds[idx], joinRequirements.contractTypes[idx]],
         });
-      }),
+      })
     );
 
     const gamePhase = isFinished

@@ -3,9 +3,7 @@ import {
   type PublicClient,
   type WalletClient,
   type Hex,
-  parseEventLogs,
   GetAbiItemParameters,
-  GetAbiItemReturnType,
   ContractFunctionArgs,
 } from "viem";
 import { getContract } from "../utils/artifacts";
@@ -89,7 +87,7 @@ export default class RankifyPlayer extends InstanceBase {
       args: estimationArgs,
     });
 
-    await this.approveTokensIfNeeded(price as bigint);
+    await this.approveTokensIfNeeded(price);
     if (!this.walletClient.account?.address) throw new Error("Account not found");
     const { request } = await this.publicClient.simulateContract({
       address: this.instanceAddress,

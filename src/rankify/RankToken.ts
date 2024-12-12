@@ -1,22 +1,32 @@
-import { Address, PublicClient } from "viem";
-import { getContract } from "../utils";
+import { Address, PublicClient, getContract } from "viem";
+import RankTokenAbi from "../abis/RankToken";
 
 export default class RankTokenClient {
   chainId: number;
   publicClient: PublicClient;
+  rankTokenAddress: Address;
 
-  constructor({ chainId, publicClient }: { chainId: number; publicClient: PublicClient }) {
+  constructor({ address, chainId, publicClient }: { address: Address; chainId: number; publicClient: PublicClient }) {
     this.chainId = chainId;
     this.publicClient = publicClient;
+    this.rankTokenAddress = address;
   }
 
-  getRankTokenURI = async () => {
-    const rankToken = getContract(this.chainId, "Rankify", this.publicClient) as any;
+  getRankTokenURI = () => {
+    const rankToken = getContract({
+      address: this.rankTokenAddress,
+      abi: RankTokenAbi,
+      client: this.publicClient,
+    });
     return rankToken.read.contractURI();
   };
 
   getRankTokenBalance = async (tokenId: bigint, account: Address) => {
-    const rankToken = getContract(this.chainId, "Rankify", this.publicClient) as any;
+    const rankToken = getContract({
+      address: this.rankTokenAddress,
+      abi: RankTokenAbi,
+      client: this.publicClient,
+    });
     return rankToken.read.balanceOf([account, tokenId]);
   };
 }
