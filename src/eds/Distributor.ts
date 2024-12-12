@@ -1,4 +1,4 @@
-import { type Address, stringToHex, getContract, Hex, PublicClient } from "viem";
+import { type Address, stringToHex, getContract, Hex, PublicClient, getAddress } from "viem";
 import DistributorAbi from "../abis/Distributor";
 
 export class DistributorClient {
@@ -6,7 +6,7 @@ export class DistributorClient {
   address: Address;
 
   constructor({ address, publicClient }: { address: Address; publicClient: PublicClient }) {
-    this.address = address;
+    this.address = getAddress(address, publicClient?.chain?.id);
     this.publicClient = publicClient;
   }
 
