@@ -29,13 +29,12 @@ export default class Multipass {
 
   constructor({
     chainId,
-    publicClient,
-    walletClient,
+    client,
   }: {
     chainId: number;
-    publicClient: PublicClient;
-    walletClient: WalletClient;
+    client: { publicClient: PublicClient; walletClient: WalletClient };
   }) {
+    const { publicClient, walletClient } = client;
     const artifact = getArtifact(chainId, "Multipass");
     this.chainId = chainId;
     this.name = artifact.execute.args[0];
