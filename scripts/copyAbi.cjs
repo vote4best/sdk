@@ -26,6 +26,19 @@ function copyAbiFiles(source, destDir) {
   });
 }
 
+function generateIndexFile(destDir) {
+  const files = fs.readdirSync(destDir);
+  const exports = files
+    .filter((file) => file.endsWith(".ts") && file !== "index.ts")
+    .map((file) => {
+      const name = path.basename(file, ".ts");
+      return `export { ${name}Abi } from './${name}';`;
+    })
+    .join("\n");
+
+  fs.writeFileSync(path.join(destDir, "index.ts"), exports + "\n");
+}
+
 // Ensure src/abis directory exists
 const abiDestDir = path.join(__dirname, "../src/abis");
 if (!fs.existsSync(abiDestDir)) {
@@ -48,3 +61,6 @@ if (fs.existsSync(peeramidDir)) {
     }
   });
 }
+
+// Generate index file
+generateIndexFile(abiDestDir);
