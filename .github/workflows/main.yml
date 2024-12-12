@@ -14,7 +14,7 @@ jobs:
       - name: Building
         run: pnpm build
       - name: Linting
-        run: pnpm lint
+        run: pnpm lint:ci
 
   test:
     runs-on: ubuntu-latest
@@ -23,4 +23,4 @@ jobs:
       - uses: './.github/setup'
 
       - name: Running tests
-        run: pnpm test
+        run: pnpm test:ci
