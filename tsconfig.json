@@ -12,8 +12,10 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": ["jest", "@jest/globals"],
+    "rootDir": "."
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "../contracts/**/*"]
+  "exclude": ["node_modules", "dist", "../contracts/**/*", "**/__tests__/**", "**/*.test.*", "**/*.spec.*"]
 }
