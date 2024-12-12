@@ -7,8 +7,8 @@ function processAbiFile(sourcePath, destDir) {
   const fileName = path.basename(sourcePath, ".json");
   const destPath = path.join(destDir, `${fileName}.ts`);
   console.log("parsing abi file", sourcePath);
-  // Convert JSON to TypeScript
-  const tsContent = `export const ${fileName}Abi = ${JSON.stringify(JSON.parse(content), null, 2)} as const; export default ${fileName}Abi;`;
+  // Convert JSON to TypeScript with both a named export and a default export
+  const tsContent = `export const ${fileName}Abi = ${JSON.stringify(JSON.parse(content), null, 2)} as const;\nexport default ${fileName}Abi;`;
   fs.writeFileSync(destPath, tsContent);
 }
 
@@ -28,15 +28,47 @@ function copyAbiFiles(source, destDir) {
 
 function generateIndexFile(destDir) {
   const files = fs.readdirSync(destDir);
-  const exports = files
-    .filter((file) => file.endsWith(".ts") && file !== "index.ts")
-    .map((file) => {
-      const name = path.basename(file, ".ts");
+  const tsFiles = files.filter(file => file.endsWith('.ts') && file !== 'index.ts');
+  
+  // Create imports
+  const imports = tsFiles
+    .map(file => {
+      const name = path.basename(file, '.ts');
+      return `import { ${name}Abi } from './${name}';`;
+    })
+    .join('\n');
+  
+  // Create named exports
+  const namedExports = tsFiles
+    .map(file => {
+      const name = path.basename(file, '.ts');
       return `export { ${name}Abi } from './${name}';`;
     })
-    .join("\n");
+    .join('\n');
+  
+  // Create the abis object
+  const abiObjectEntries = tsFiles
+    .map(file => {
+      const name = path.basename(file, '.ts');
+      return `  ${name}Abi`;
+    })
+    .join(',\n');
 
-  fs.writeFileSync(path.join(destDir, "index.ts"), exports + "\n");
+  const indexContent = `${imports}
+
+// Re-export all ABIs
+${namedExports}
+
+// Create and export the abis object
+const abis = {
+${abiObjectEntries}
+} as const;
+
+export { abis };
+export default abis;
+`;
+
+  fs.writeFileSync(path.join(destDir, 'index.ts'), indexContent);
 }
 
 // Ensure src/abis directory exists

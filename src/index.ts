@@ -4,4 +4,6 @@ export { default as InstancePlayer } from "./rankify/Player";
 export * from "./utils";
 export * from "./types";
 export * from "./rankify/MAODistributor";
-export * as abis from "./abis/index";
+
+// Re-export the abis object
+export { abis } from "./abis/index";
