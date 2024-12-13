@@ -12,7 +12,7 @@ export class DistributorClient {
 
   async getDistributions() {
     const contract = getContract({
-      address: this.address,
+      address: getAddress(this.address),
       abi: DistributorAbi,
       client: this.publicClient,
     });
@@ -26,9 +26,12 @@ export class DistributorClient {
       client: this.publicClient,
     });
 
-    const events = await contract.getEvents.Instantiated({
-      distributionId: distributorsId,
-    });
+    const events = await contract.getEvents.Instantiated(
+      {
+        distributionId: distributorsId,
+      },
+      { toBlock: "latest", fromBlock: 1n } //ToDo: Parametrize this
+    );
 
     return events.map((log) => log.args.instances as Address[]);
   }
@@ -40,10 +43,13 @@ export class DistributorClient {
       client: this.publicClient,
     });
 
-    const events = await contract.getEvents.Instantiated({
-      distributionId: distributorsId,
-      newInstanceId: instanceId,
-    });
+    const events = await contract.getEvents.Instantiated(
+      {
+        distributionId: distributorsId,
+        newInstanceId: instanceId,
+      },
+      { toBlock: "latest", fromBlock: 1n } //ToDo: Parametrize this
+    );
 
     if (events.length > 1) {
       throw new Error(`Multiple instances found for distributor ${distributorsId} and instance ${instanceId}`);
