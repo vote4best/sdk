@@ -113,7 +113,9 @@ export class MAODistributorClient extends DistributorClient {
    * @param namedDistribution Distribution name (defaults to "MAO Distribution")
    * @returns Array of MAOInstances contract instances
    */
-  async getNamedMAODistributionInstances(namedDistribution: string): Promise<MAOInstanceContracts[]> {
+  async getMAOInstances(
+    namedDistribution: string = MAODistributorClient.DEFAULT_NAME
+  ): Promise<MAOInstanceContracts[]> {
     const logs = await this.publicClient.getContractEvents({
       address: this.address,
       abi: distributorAbi,
