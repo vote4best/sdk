@@ -35,9 +35,9 @@
     "version": "changeset version",
     "release": "pnpm build && cd ./dist && changeset publish",
     "test": "jest",
-    "test:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm run jest",
+    "test:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm jest",
     "test:watch": "jest --watch",
-    "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm run lint"
+    "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint"
   },
   "dependencies": {
     "@peeramid-labs/eds": "^2.2.0",
