@@ -1,6 +1,6 @@
 import { DistributorClient } from "../eds/Distributor";
 import { getArtifact } from "../utils";
-import { MAOInstances, parseInstantiated } from "rankify-contracts/scripts/parseInstantiated";
+import { MAOInstances, parseInstantiated } from "../types/contracts";
 import instanceAbi from "../abis/RankifyDiamondInstance";
 import rankTokenAbi from "../abis/RankToken";
 import govtTokenAbi from "../abis/DistributableGovernanceERC20";
@@ -130,7 +130,7 @@ export class MAODistributorClient extends DistributorClient {
       .map((ip) => this.addressesToContracts(ip));
 
     if (instances.length === 0) {
-      console.error("No instances found");
+      console.error("No instances found", logs);
       throw new Error(`No instances found for distribution ${namedDistribution}`);
     }
 

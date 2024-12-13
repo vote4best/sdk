@@ -1,15 +1,5 @@
-import {
-  type Address,
-  type PublicClient,
-  type WalletClient,
-  type Hex,
-  stringToHex,
-  zeroAddress,
-  isAddress,
-  TypedDataDomain,
-} from "viem";
-import { getArtifact } from "./utils";
-import type { RegisterMessage } from "./types";
+import { type Address, type Hex, stringToHex, zeroAddress, isAddress } from "viem";
+import type { RegisterMessage } from "../types";
 
 export type NameQuery = {
   name: Hex;
@@ -19,29 +9,11 @@ export type NameQuery = {
   targetDomain: Hex;
 };
 
-export default class Multipass {
-  private chainId: number;
-  private name: string;
-  private version: string;
-  private publicClient: PublicClient;
-  private walletClient: WalletClient;
-  private instanceAddress: Address;
+export default class MultipassBase {
+  chainId: number;
 
-  constructor({
-    chainId,
-    client,
-  }: {
-    chainId: number;
-    client: { publicClient: PublicClient; walletClient: WalletClient };
-  }) {
-    const { publicClient, walletClient } = client;
-    const artifact = getArtifact(chainId, "Multipass");
+  constructor({ chainId }: { chainId: number }) {
     this.chainId = chainId;
-    this.name = artifact.execute.args[0];
-    this.version = artifact.execute.args[1];
-    this.instanceAddress = artifact.address;
-    this.publicClient = publicClient;
-    this.walletClient = walletClient;
   }
 
   public getDappURL(message: object, signature: string, basepath: string, contractAddress: string) {
@@ -57,35 +29,6 @@ export default class Multipass {
       this.chainId
     );
   }
-
-  public signRegistrarMessage = async (message: RegisterMessage, verifierAddress: Address) => {
-    if (!this.walletClient.account?.address) throw new Error("No account found");
-
-    const domain: TypedDataDomain = {
-      name: this.name,
-      version: this.version,
-      chainId: this.chainId,
-      verifyingContract: verifierAddress,
-    };
-
-    const types = {
-      registerName: [
-        { type: "bytes32", name: "name" },
-        { type: "bytes32", name: "id" },
-        { type: "bytes32", name: "domainName" },
-        { type: "uint256", name: "validUntil" },
-        { type: "uint96", name: "nonce" },
-      ],
-    } as const;
-
-    return this.walletClient.signTypedData({
-      account: this.walletClient.account.address,
-      domain: domain,
-      types,
-      primaryType: "registerName",
-      message: { ...message },
-    });
-  };
 
   public getRegistrarMessage = ({
     username,

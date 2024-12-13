@@ -1,8 +1,8 @@
 import { describe, expect, test, jest } from "@jest/globals";
-import Multipass from "../multipass";
+import Multipass from "../Registrar";
 import { createPublicClient, createWalletClient, Hex } from "viem";
 import { Address } from "viem";
-import { RegisterMessage } from "../types";
+import { RegisterMessage } from "../../types";
 
 // Mock viem
 jest.mock("viem", () => ({
@@ -40,8 +40,6 @@ describe("Multipass", () => {
 
   const multipass = new Multipass({
     chainId: mockChainId,
-    // eslint-disable-next-line
-    publicClient: mockPublicClient as any,
     // eslint-disable-next-line
     walletClient: mockWalletClient as any,
   });
@@ -115,8 +113,6 @@ describe("Multipass", () => {
 
       const multipassNoAccount = new Multipass({
         chainId: mockChainId,
-        // eslint-disable-next-line
-        publicClient: mockPublicClient as any,
         // eslint-disable-next-line
         walletClient: { ...mockWalletClient, account: null } as any,
       });

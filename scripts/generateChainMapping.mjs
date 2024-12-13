@@ -64,7 +64,9 @@ async function formatFile(filePath) {
 
 async function generateMapping() {
   try {
-    const mapping = {};
+    const mapping = {
+      31337: "localhost",
+    };
     const projectRoot = path.resolve(__dirname, "..");
 
     for (const pkg of PACKAGES_WITH_DEPLOYMENTS) {
@@ -88,12 +90,12 @@ async function generateMapping() {
 
     // Generate TypeScript file
     const tsContent = `// This file is auto-generated. Do not edit manually.
-export type ChainMapping = Record<number, string>;
+export type ChainMapping = Record<string, string>;
 
 export const chainToPath: ChainMapping = ${JSON.stringify(mapping, null, 2)} as const;
 
 export function getChainPath(chainId: number): string {
-  const path = chainToPath[chainId];
+  const path = chainToPath[chainId.toString() as keyof typeof chainToPath];
   if (!path) {
     throw new Error(\`Chain ID \${chainId} is not supported\`);
   }

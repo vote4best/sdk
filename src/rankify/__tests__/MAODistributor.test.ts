@@ -5,15 +5,12 @@ import {
   type Address,
   type Hash,
   type TransactionReceipt,
-  type Chain,
   type Log,
   GetContractEventsReturnType,
 } from "viem";
 import { MAODistributorClient } from "../MAODistributor";
-import { MAOInstances } from "rankify-contracts/scripts/parseInstantiated";
-import { DistributorArgumentsStruct } from "../MAODistributor";
+import { MAOInstances } from "../../types/contracts";
 import distributorAbi from "../../abis/IDistributor";
-import { abis } from "../../index";
 
 const mockChainId = 42161; // Arbitrum One chain ID
 const mockChain = {

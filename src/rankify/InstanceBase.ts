@@ -180,7 +180,7 @@ export default class InstanceBase {
       abi: instanceAbi,
       eventName: "RegistrationOpen",
       args: {
-        gameId,
+        gameId: gameId,
       },
     });
 
@@ -195,12 +195,12 @@ export default class InstanceBase {
       return Number(block.timestamp) + timeToJoin;
     }
 
-    const gameState = (await this.publicClient.readContract({
+    const gameState = await this.publicClient.readContract({
       address: this.instanceAddress,
       abi: instanceAbi,
       functionName: "getGameState",
       args: [gameId],
-    })) as { timeToJoin: bigint };
+    });
 
     return Number(block.timestamp) + Number(gameState.timeToJoin);
   };
