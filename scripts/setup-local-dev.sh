@@ -21,7 +21,7 @@ tmux_session_exists() {
 start_anvil() {
     if ! tmux_session_exists "anvil"; then
         echo "🔨 Starting Anvil development network in tmux session..."
-        tmux new-session -d -s anvil "anvil -m 'casual vacant letter raw trend tool vacant opera buzz jaguar bridge myself
+        tmux new-session -d -s anvil "anvil -m 'casual vacant letter raw trend tool vacant opera buzz jaguar bridge myself'"
         sleep 2
 
         # Check if anvil started successfully by looking for its output in tmux
