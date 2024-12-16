@@ -141,7 +141,6 @@ export class MAODistributorClient extends DistributorClient {
     }
 
     if (logs.length > 1) {
-      console.log(logs);
       console.error("Multiple instances found");
       throw new Error(`Multiple instances found for distribution ${name} and id ${instanceId}`);
     }
@@ -178,7 +177,6 @@ export class MAODistributorClient extends DistributorClient {
     const receipt = await this.walletClient
       .writeContract(request)
       .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
-    console.log(receipt.logs[0].topics);
 
     const instantiatedEvent = parseEventLogs({
       abi: distributorAbi,
@@ -197,7 +195,6 @@ export class MAODistributorClient extends DistributorClient {
     }
 
     const addresses = parseInstantiated(instantiatedEvent[0].args.instances as string[]);
-    console.log("this.addressesToContracts(addresses)", this.addressesToContracts(addresses));
     return this.addressesToContracts(addresses);
   }
 }
