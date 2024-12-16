@@ -37,7 +37,10 @@
     "test": "jest",
     "test:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm jest",
     "test:watch": "jest --watch",
-    "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint"
+    "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch",
+    "prepublishOnly": "pnpm run build && pnpm run docs"
   },
   "dependencies": {
     "@peeramid-labs/eds": "^2.2.0",
@@ -66,6 +69,9 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "typedoc": "^0.25.7",
+    "typedoc-plugin-markdown": "^3.17.1",
+    "typedoc-theme-hierarchy": "^4.1.2"
   }
 }

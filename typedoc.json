@@ -1,0 +1,30 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "out": "docs",
+  "exclude": ["**/__tests__/**/*", "**/node_modules/**/*"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": false,
+  "includeVersion": true,
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "markdown",
+  "readme": "none",
+  "name": "Rankify SDK API Documentation",
+  "basePath": "./",
+  "excludeNotDocumented": false,
+  "sort": ["source-order"],
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Core",
+    "Rankify",
+    "Multipass",
+    "*"
+  ],
+  "intentionallyNotExported": [
+    "RankifyAbi",
+    "MultipassAbi",
+    "SimpleAccessManagerAbi",
+    "DAODistributorAbi"
+  ]
+}

@@ -65,3 +65,28 @@ The script uses a fixed mnemonic for consistent addresses across runs.
 - View Anvil logs: `tmux attach -t anvil`
 - Detach from logs: Press `Ctrl+B` then `D`
 - Stop Anvil: `tmux kill-session -t anvil`
+
+## Documentation
+
+The SDK comes with comprehensive API documentation generated using TypeDoc. The documentation is automatically generated during the package build process and is included in the npm package.
+
+### Generating Documentation
+
+To generate the documentation locally:
+
+```bash
+pnpm run docs
+```
+
+This will create a `docs` directory with the generated documentation.
+
+For development, you can use the watch mode:
+
+```bash
+pnpm run docs:watch
+```
+
+### Accessing Documentation
+
+- **Local Development**: Open `docs/index.html` in your browser after generating the documentation
+- **Published Package**: Documentation is available through the npm package page
