@@ -14,7 +14,7 @@ jest.mock("viem", () => ({
 }));
 
 // Mock utils
-jest.mock("../utils", () => ({
+jest.mock("../../utils", () => ({
   getArtifact: jest.fn().mockReturnValue({
     execute: {
       args: ["TestMultipass", "1.0.0"],

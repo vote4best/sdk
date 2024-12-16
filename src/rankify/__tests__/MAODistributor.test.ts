@@ -7,24 +7,12 @@ import {
   type TransactionReceipt,
   type Log,
   GetContractEventsReturnType,
+  encodeAbiParameters,
+  stringToHex,
+  encodeEventTopics,
 } from "viem";
-import { MAODistributorClient } from "../MAODistributor";
-import { MAOInstances } from "../../types/contracts";
-import distributorAbi from "../../abis/IDistributor";
-
-const mockChainId = 42161; // Arbitrum One chain ID
-const mockChain = {
-  id: mockChainId,
-  name: "Arbitrum One",
-  network: "arbitrum",
-  nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-  rpcUrls: {
-    default: { http: ["https://arb1.arbitrum.io/rpc"] },
-  },
-} as const;
-
 // Mock addresses for different contracts and actors
-const MOCK_ADDRESSES = {
+export const MOCK_ADDRESSES = {
   DISTRIBUTOR: "0x1234567890123456789012345678901234567890" as Address,
   RANK_TOKEN: "0x1234567890123456789012345678901234567891" as Address,
   GOVT_TOKEN: "0x1234567890123456789012345678901234567892" as Address,
@@ -33,6 +21,54 @@ const MOCK_ADDRESSES = {
   ACID_INSTANCE: "0x1234567890123456789012345678901234567895" as Address,
   OWNER: "0x1234567890123456789012345678901234567896" as Address,
   PLAYER: "0x1234567890123456789012345678901234567897" as Address,
+};
+
+import { MAODistributorClient } from "../MAODistributor";
+import { MAOInstances } from "../../types/contracts";
+import distributorAbi from "../../abis/IDistributor";
+
+// Mock viem
+jest.mock("viem", () => ({
+  ...(jest.requireActual("viem") as object),
+  getContract: jest.fn(),
+  createPublicClient: jest.fn(),
+  createWalletClient: jest.fn(),
+  http: jest.fn(),
+}));
+
+// Mock utils
+jest.mock("../../utils", () => ({
+  getArtifact: jest.fn().mockImplementation((chainId: unknown, artifactName: unknown) => {
+    if (artifactName === "DAODistributor") {
+      return {
+        abi: distributorAbi,
+        address: MOCK_ADDRESSES.DISTRIBUTOR,
+        execute: {
+          args: ["TestDistributor", "1.0.0"],
+        },
+      };
+    }
+    return {
+      abi: [],
+      address: "0x0000000000000000000000000000000000000000",
+      execute: {
+        args: [],
+      },
+    };
+  }),
+}));
+
+// Error.stackTraceLimit = 3;
+
+const mockChainId = 31337; // localhost
+const mockChain = {
+  id: mockChainId,
+  name: "Arbitrum One",
+  network: "arbitrum",
+  nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://arb1.arbitrum.io/rpc"] },
+  },
 } as const;
 
 // Mock transaction hashes and block hashes
@@ -46,25 +82,55 @@ const mockGetContractEvents = jest
   .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
   .mockResolvedValue([
     {
-      args: {
-        instances: [
-          MOCK_ADDRESSES.RANK_TOKEN,
-          MOCK_ADDRESSES.GOVT_TOKEN,
-          MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
-          MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
-          MOCK_ADDRESSES.ACID_INSTANCE,
-        ],
-      },
       address: MOCK_ADDRESSES.DISTRIBUTOR,
       blockHash: MOCK_HASHES.BLOCK,
       blockNumber: BigInt(1),
-      data: "0x",
+      data: encodeAbiParameters(
+        [{ type: "string" }, { type: "address[]" }],
+        [
+          "test",
+          [
+            MOCK_ADDRESSES.GOVT_TOKEN,
+            MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
+            MOCK_ADDRESSES.ACID_INSTANCE,
+            MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
+            MOCK_ADDRESSES.RANK_TOKEN,
+            "0x0000000000000000000000000000000000000000", // padding for indices 5-9
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            MOCK_ADDRESSES.ACID_ACCESS_MANAGER, // index 10
+            MOCK_ADDRESSES.RANK_TOKEN, // index 11
+          ],
+        ]
+      ),
       logIndex: 0,
       transactionHash: MOCK_HASHES.TRANSACTION,
       transactionIndex: 0,
       removed: false,
+      topics: encodeEventTopics({
+        abi: distributorAbi,
+        eventName: "Instantiated",
+      }) as [`0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`],
       eventName: "Instantiated",
-      topics: ["0x0", "0x1", "0x01", "0x2"],
+      args: {
+        distributionId: stringToHex("test", { size: 32 }),
+        instances: [
+          MOCK_ADDRESSES.GOVT_TOKEN,
+          MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
+          MOCK_ADDRESSES.ACID_INSTANCE,
+          MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
+          MOCK_ADDRESSES.RANK_TOKEN,
+          "0x0000000000000000000000000000000000000000", // padding for indices 5-9
+          "0x0000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000",
+          MOCK_ADDRESSES.ACID_ACCESS_MANAGER, // index 10
+          MOCK_ADDRESSES.RANK_TOKEN, // index 11
+        ],
+      },
     },
   ]);
 
@@ -83,12 +149,33 @@ const mockWaitForTransactionReceipt = jest.fn(() =>
         address: MOCK_ADDRESSES.DISTRIBUTOR,
         blockHash: MOCK_HASHES.BLOCK,
         blockNumber: BigInt(1),
-        data: "0x",
+        data: encodeAbiParameters(
+          [{ type: "address[]" }],
+          [
+            [
+              MOCK_ADDRESSES.GOVT_TOKEN,
+              MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
+              MOCK_ADDRESSES.ACID_INSTANCE,
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
+              MOCK_ADDRESSES.RANK_TOKEN,
+              "0x0000000000000000000000000000000000000000", // padding for indices 5-9
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER, // index 10
+              MOCK_ADDRESSES.RANK_TOKEN, // index 11
+            ],
+          ]
+        ),
         logIndex: 0,
         transactionHash: MOCK_HASHES.TRANSACTION,
         transactionIndex: 0,
         removed: false,
-        topics: ["0x0", "0x1", "0x01", "0x2"],
+        topics: [
+          // keccak256("Instantiated(address[])") - you can replace this with the actual event signature hash
+          "0x0000000000000000000000000000000000000000000000000000000000000001",
+        ],
       },
     ] as Log<bigint, number, false>[],
     logsBloom: "0x",
@@ -141,10 +228,6 @@ const mockWalletClient = {
   writeContract: mockWriteContract,
 } as unknown as WalletClient;
 
-jest.mock("../../utils", () => ({
-  getArtifact: jest.fn().mockReturnValue({ address: MOCK_ADDRESSES.DISTRIBUTOR }),
-}));
-
 describe("MAODistributorClient", () => {
   let distributor: MAODistributorClient;
 
@@ -181,11 +264,18 @@ describe("MAODistributorClient", () => {
           args: {
             distributionId: "0x12334",
             instances: [
-              MOCK_ADDRESSES.RANK_TOKEN,
               MOCK_ADDRESSES.GOVT_TOKEN,
               MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
-              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
               MOCK_ADDRESSES.ACID_INSTANCE,
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
+              MOCK_ADDRESSES.RANK_TOKEN,
+              "0x0000000000000000000000000000000000000000", // padding for indices 5-9
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER, // index 10
+              MOCK_ADDRESSES.RANK_TOKEN, // index 11
             ],
           },
         },
@@ -196,7 +286,7 @@ describe("MAODistributorClient", () => {
       const contracts = distributor.addressesToContracts(mockInstances);
       expect(contracts).toHaveProperty("rankToken");
       expect(contracts).toHaveProperty("instance");
-      expect(contracts).toHaveProperty("govToken");
+      expect(contracts).toHaveProperty("govtToken");
       expect(contracts).toHaveProperty("govTokenAccessManager");
       expect(contracts).toHaveProperty("ACIDAccessManager");
     });
@@ -231,11 +321,18 @@ describe("MAODistributorClient", () => {
           args: {
             distributionId: "0x12334",
             instances: [
-              MOCK_ADDRESSES.RANK_TOKEN,
               MOCK_ADDRESSES.GOVT_TOKEN,
               MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
-              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
               MOCK_ADDRESSES.ACID_INSTANCE,
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
+              MOCK_ADDRESSES.RANK_TOKEN,
+              "0x0000000000000000000000000000000000000000", // padding for indices 5-9
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER, // index 10
+              MOCK_ADDRESSES.RANK_TOKEN, // index 11
             ],
           },
         },
@@ -259,6 +356,10 @@ describe("MAODistributorClient", () => {
 
   describe("getMAOInstance", () => {
     it("should throw error when multiple instances found", async () => {
+      const t = encodeEventTopics({
+        abi: distributorAbi,
+        eventName: "Instantiated",
+      })[0];
       const mockLog = [
         {
           address: MOCK_ADDRESSES.DISTRIBUTOR,
@@ -270,15 +371,22 @@ describe("MAODistributorClient", () => {
           transactionIndex: 0,
           removed: false,
           eventName: "Instantiated",
-          topics: ["0x0", "0x1", "0x01", "0x2"],
+          topics: [t, "0x1", "0x01", "0x2"],
           args: {
             distributionId: "0x12334",
             instances: [
-              MOCK_ADDRESSES.RANK_TOKEN,
               MOCK_ADDRESSES.GOVT_TOKEN,
               MOCK_ADDRESSES.GOVT_ACCESS_MANAGER,
-              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
               MOCK_ADDRESSES.ACID_INSTANCE,
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER,
+              MOCK_ADDRESSES.RANK_TOKEN,
+              "0x0000000000000000000000000000000000000000", // padding for indices 5-9
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              "0x0000000000000000000000000000000000000000",
+              MOCK_ADDRESSES.ACID_ACCESS_MANAGER, // index 10
+              MOCK_ADDRESSES.RANK_TOKEN, // index 11
             ],
           },
         },
@@ -292,7 +400,9 @@ describe("MAODistributorClient", () => {
     it("should throw error when no instances found", async () => {
       mockGetContractEvents.mockResolvedValue([]);
 
-      await expect(distributor.getMAOInstance("test", BigInt(1))).rejects.toThrow("No instances found");
+      await expect(distributor.getMAOInstance("test", BigInt(1))).rejects.toThrow(
+        "No instance found for distribution test and id 1"
+      );
     });
   });
 
@@ -315,6 +425,7 @@ describe("MAODistributorClient", () => {
       ] as const;
 
       const mockHash = "0xabc" as Hash;
+
       const mockReceipt = {
         blockNumber: BigInt(1),
         blockHash: MOCK_HASHES.BLOCK,
@@ -328,12 +439,40 @@ describe("MAODistributorClient", () => {
             address: MOCK_ADDRESSES.DISTRIBUTOR,
             blockHash: MOCK_HASHES.BLOCK,
             blockNumber: BigInt(1),
-            data: "0x",
+            data: encodeAbiParameters(
+              [{ type: "address[]" }, { type: "bytes" }],
+              [
+                [
+                  MOCK_ADDRESSES.GOVT_TOKEN as Address,
+                  MOCK_ADDRESSES.GOVT_ACCESS_MANAGER as Address,
+                  MOCK_ADDRESSES.ACID_INSTANCE as Address,
+                  MOCK_ADDRESSES.ACID_ACCESS_MANAGER as Address,
+                  MOCK_ADDRESSES.RANK_TOKEN as Address,
+                  "0x0000000000000000000000000000000000000000" as Address, // padding for indices 5-9
+                  "0x0000000000000000000000000000000000000000" as Address,
+                  "0x0000000000000000000000000000000000000000" as Address,
+                  "0x0000000000000000000000000000000000000000" as Address,
+                  "0x0000000000000000000000000000000000000000" as Address,
+                  MOCK_ADDRESSES.ACID_ACCESS_MANAGER as Address, // index 10
+                  MOCK_ADDRESSES.RANK_TOKEN as Address, // index 11
+                ],
+                "0x", // The bytes parameter
+              ]
+            ),
             logIndex: 0,
             transactionHash: MOCK_HASHES.TRANSACTION,
             transactionIndex: 0,
             removed: false,
-            topics: ["0x0", "0x1", "0x01", "0x2"],
+            topics: [
+              encodeEventTopics({
+                abi: distributorAbi,
+                eventName: "Instantiated",
+              })[0],
+              stringToHex("0x01", { size: 32 }),
+              stringToHex("0x02", { size: 32 }),
+              stringToHex("0x03", { size: 32 }),
+            ],
+            // eventName: "Instantiated",
           },
         ] as Log<bigint, number, false>[],
         logsBloom: "0x",
@@ -343,7 +482,6 @@ describe("MAODistributorClient", () => {
         transactionHash: MOCK_HASHES.TRANSACTION,
         type: "eip1559",
       } as TransactionReceipt;
-
       mockWriteContract.mockResolvedValue(mockHash);
       mockWaitForTransactionReceipt.mockResolvedValue(mockReceipt);
 

@@ -9,7 +9,6 @@ import {
   getAddress,
   getContract,
   GetContractReturnType,
-  isAddress,
   Chain,
   encodeAbiParameters,
   GetAbiItemParameters,
@@ -44,7 +43,7 @@ export interface MAOInstanceContracts {
   rankToken: GetContractReturnType<typeof rankTokenAbi>;
   instance: GetContractReturnType<typeof instanceAbi>;
   govtToken: GetContractReturnType<typeof govtTokenAbi>;
-  govtAccessManager: GetContractReturnType<typeof govtAccessManagerAbi>;
+  govTokenAccessManager: GetContractReturnType<typeof govtAccessManagerAbi>;
   ACIDAccessManager: GetContractReturnType<typeof govtAccessManagerAbi>;
 }
 
@@ -65,47 +64,37 @@ export class MAODistributorClient extends DistributorClient {
    * @throws Error if any of the addresses are invalid
    */
   addressesToContracts(addresses: MAOInstances): MAOInstanceContracts {
-    if (
-      !isAddress(addresses.ACIDInstance) ||
-      !isAddress(addresses.rankToken) ||
-      !isAddress(addresses.govToken) ||
-      !isAddress(addresses.govTokenAccessManager) ||
-      !isAddress(addresses.ACIDAccessManager)
-    ) {
-      throw new Error("Invalid address provided to addressesToContracts");
-    }
-
     const instance = getContract({
-      address: addresses.ACIDInstance,
+      address: getAddress(addresses.ACIDInstance),
       abi: instanceAbi,
       client: this.walletClient,
     });
 
     const rankToken = getContract({
-      address: addresses.rankToken,
+      address: getAddress(addresses.rankToken),
       abi: rankTokenAbi,
       client: this.walletClient,
     });
 
     const govtToken = getContract({
-      address: addresses.govToken,
+      address: getAddress(addresses.govToken),
       abi: govtTokenAbi,
       client: this.walletClient,
     });
 
-    const govtAccessManager = getContract({
-      address: addresses.govTokenAccessManager,
+    const govTokenAccessManager = getContract({
+      address: getAddress(addresses.govTokenAccessManager),
       abi: govtAccessManagerAbi,
       client: this.walletClient,
     });
 
     const ACIDAccessManager = getContract({
-      address: addresses.ACIDAccessManager,
+      address: getAddress(addresses.ACIDAccessManager),
       abi: govtAccessManagerAbi,
       client: this.walletClient,
     });
 
-    return { rankToken, instance, govtToken, govtAccessManager, ACIDAccessManager };
+    return { rankToken, instance, govtToken, govTokenAccessManager, ACIDAccessManager };
   }
 
   /**
@@ -128,11 +117,6 @@ export class MAODistributorClient extends DistributorClient {
     const instances = logs
       .map((l) => parseInstantiated(l.args.instances as string[]))
       .map((ip) => this.addressesToContracts(ip));
-
-    if (instances.length === 0) {
-      console.error("No instances found", logs);
-      throw new Error(`No instances found for distribution ${namedDistribution}`);
-    }
 
     return instances;
   }
@@ -157,6 +141,7 @@ export class MAODistributorClient extends DistributorClient {
     }
 
     if (logs.length > 1) {
+      console.log(logs);
       console.error("Multiple instances found");
       throw new Error(`Multiple instances found for distribution ${name} and id ${instanceId}`);
     }
@@ -193,11 +178,13 @@ export class MAODistributorClient extends DistributorClient {
     const receipt = await this.walletClient
       .writeContract(request)
       .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
+    console.log(receipt.logs[0].topics);
 
     const instantiatedEvent = parseEventLogs({
       abi: distributorAbi,
       logs: receipt.logs,
       eventName: "Instantiated",
+      // strict: false,
     });
 
     if (instantiatedEvent.length == 0) {
@@ -210,6 +197,7 @@ export class MAODistributorClient extends DistributorClient {
     }
 
     const addresses = parseInstantiated(instantiatedEvent[0].args.instances as string[]);
+    console.log("this.addressesToContracts(addresses)", this.addressesToContracts(addresses));
     return this.addressesToContracts(addresses);
   }
 }

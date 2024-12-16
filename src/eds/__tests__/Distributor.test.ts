@@ -2,7 +2,7 @@ import { describe, expect, test, jest } from "@jest/globals";
 import { DistributorClient } from "../Distributor";
 import { createPublicClient, getContract, GetContractEventsReturnType } from "viem";
 import { Address } from "viem";
-import distributorAbi from "../../abis/Distributor";
+import { DistributorAbi } from "../../abis/Distributor";
 
 // Mock viem
 jest.mock("viem", () => ({
@@ -45,7 +45,7 @@ describe("DistributorClient", () => {
       expect(result).toEqual([1n, 2n, 3n]);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
-        abi: distributorAbi,
+        abi: DistributorAbi,
         client: mockPublicClient,
       });
     });
@@ -57,7 +57,7 @@ describe("DistributorClient", () => {
         ["0x1234", "0x5678"],
         ["0x9abc", "0xdef0"],
       ];
-      const resolved: GetContractEventsReturnType<typeof distributorAbi, "Instantiated"> = [];
+      const resolved: GetContractEventsReturnType<typeof DistributorAbi, "Instantiated"> = [];
       resolved.push({
         args: { instances: mockInstances[0] },
         address: "0x1234567890123456789012345678901234567890",
@@ -88,7 +88,7 @@ describe("DistributorClient", () => {
       const mockContract = {
         getEvents: {
           Instantiated: jest
-            .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
+            .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue(resolved),
         },
       };
@@ -98,12 +98,15 @@ describe("DistributorClient", () => {
       expect(result).toEqual(mockInstances);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
-        abi: distributorAbi,
+        abi: DistributorAbi,
         client: mockPublicClient,
       });
-      expect(mockContract.getEvents.Instantiated).toHaveBeenCalledWith({
-        distributionId: "0x123",
-      });
+      expect(mockContract.getEvents.Instantiated).toHaveBeenCalledWith(
+        {
+          distributionId: "0x123",
+        },
+        { fromBlock: 1n, toBlock: "latest" }
+      );
     });
   });
 
@@ -113,7 +116,7 @@ describe("DistributorClient", () => {
       const mockContract = {
         getEvents: {
           Instantiated: jest
-            .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
+            .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
                 args: { instances: mockInstances },
@@ -137,20 +140,23 @@ describe("DistributorClient", () => {
       expect(result).toEqual(mockInstances);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
-        abi: distributorAbi,
+        abi: DistributorAbi,
         client: mockPublicClient,
       });
-      expect(mockContract.getEvents.Instantiated).toHaveBeenCalledWith({
-        distributionId: "0x123",
-        newInstanceId: 1n,
-      });
+      expect(mockContract.getEvents.Instantiated).toHaveBeenCalledWith(
+        {
+          distributionId: "0x123",
+          newInstanceId: 1n,
+        },
+        { fromBlock: 1n, toBlock: "latest" }
+      );
     });
 
     test("should throw error when multiple instances found", async () => {
       const mockContract = {
         getEvents: {
           Instantiated: jest
-            .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
+            .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
                 args: { instances: ["0x1234"] },
@@ -192,7 +198,7 @@ describe("DistributorClient", () => {
       const mockContract = {
         getEvents: {
           Instantiated: jest
-            .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
+            .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([]),
         },
       };
@@ -210,7 +216,7 @@ describe("DistributorClient", () => {
       const mockContract = {
         getEvents: {
           Instantiated: jest
-            .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
+            .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
                 args: { instances: mockInstances[0] },
@@ -234,7 +240,7 @@ describe("DistributorClient", () => {
       expect(result).toEqual(mockInstances);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
-        abi: distributorAbi,
+        abi: DistributorAbi,
         client: mockPublicClient,
       });
     });
@@ -246,7 +252,7 @@ describe("DistributorClient", () => {
       const mockContract = {
         getEvents: {
           Instantiated: jest
-            .fn<() => Promise<GetContractEventsReturnType<typeof distributorAbi, "Instantiated">>>()
+            .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
                 args: { instances: mockInstances },
@@ -270,7 +276,7 @@ describe("DistributorClient", () => {
       expect(result).toEqual(mockInstances);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
-        abi: distributorAbi,
+        abi: DistributorAbi,
         client: mockPublicClient,
       });
     });
