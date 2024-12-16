@@ -14,7 +14,7 @@ jest.mock("viem", () => ({
 
 // Mock utils/artifacts
 jest.mock("../../utils/artifacts", () => ({
-  getArtifact: jest.fn().mockImplementation((chainId: unknown, artifactName: unknown) => {
+  getArtifact: jest.fn().mockImplementation(() => {
     const mockAddress = "0x1234567890123456789012345678901234567890";
     const mockArtifact = {
       abi: rankifyAbi,
