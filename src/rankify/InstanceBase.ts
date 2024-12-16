@@ -3,6 +3,9 @@ import { ApiError } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
 
+/**
+ * Enum representing different states of a game instance
+ */
 export enum gameStatusEnum {
   created = "Game created",
   open = "Registration open",
@@ -15,11 +18,25 @@ export enum gameStatusEnum {
 
 export type RankifyContract = GetContractReturnType<typeof instanceAbi, PublicClient>;
 
+/**
+ * Base class for interacting with a Rankify game instance
+ * Provides core functionality for managing game state and interactions
+ */
 export default class InstanceBase {
+  /** Public client for blockchain interactions */
   publicClient: PublicClient;
+  /** Chain ID of the network */
   chainId: number;
+  /** Address of the Rankify instance contract */
   instanceAddress: Address;
 
+  /**
+   * Creates a new InstanceBase
+   * @param {Object} params - Constructor parameters
+   * @param {PublicClient} params.publicClient - Public client for blockchain interactions
+   * @param {number} params.chainId - Chain ID of the network
+   * @param {Address} params.instanceAddress - Address of the Rankify instance contract
+   */
   constructor({
     publicClient,
     chainId,

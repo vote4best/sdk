@@ -1,3 +1,8 @@
+/**
+ * @file MAO (Meritocratic Autonomous Organization) Distribution implementation
+ * Provides functionality for managing and distributing MAO tokens and instances
+ */
+
 import { DistributorClient } from "../eds/Distributor";
 import { getArtifact } from "../utils";
 import { MAOInstances, parseInstantiated } from "../types/contracts";
@@ -21,36 +26,71 @@ import {
 import MaoDistributionAbi from "../abis/MAODistribution";
 import distributorAbi from "../abis/IDistributor";
 
+/**
+ * Structure defining token-related arguments
+ */
 export type TokenArgumentsStructOutput = {
+  /** Name of the token */
   tokenName: string;
+  /** Symbol for the token */
   tokenSymbol: string;
 };
 
+/**
+ * Configuration settings for Rankify user settings
+ */
 export type UserRankifySettingsStructOutput = {
+  /** Cost of the principal token */
   principalCost: bigint;
+  /** Time constant for principal calculations */
   principalTimeConstant: bigint;
+  /** Additional metadata for the settings */
   metadata: string;
+  /** URI for the rank token */
   rankTokenURI: string;
+  /** Contract URI for the rank token */
   rankTokenContractURI: string;
 };
 
+/**
+ * Combined arguments for new community initialization
+ */
 export type DistributorArgumentsStruct = {
+  /** Token configuration settings */
   tokenSettings: TokenArgumentsStructOutput;
+  /** Rankify-specific settings */
   rankifySettings: UserRankifySettingsStructOutput;
 };
 
+/**
+ * Collection of contract instances for a MAO deployment
+ */
 export interface MAOInstanceContracts {
+  /** Rank token contract instance */
   rankToken: GetContractReturnType<typeof rankTokenAbi>;
+  /** Main instance contract */
   instance: GetContractReturnType<typeof instanceAbi>;
+  /** Governance token contract */
   govtToken: GetContractReturnType<typeof govtTokenAbi>;
+  /** Access manager for governance token */
   govTokenAccessManager: GetContractReturnType<typeof govtAccessManagerAbi>;
+  /** Access manager for ACID */
   ACIDAccessManager: GetContractReturnType<typeof govtAccessManagerAbi>;
 }
 
+/**
+ * Client for managing MAO Distribution operations
+ * Handles creation, management and interaction with MAO instances
+ */
 export class MAODistributorClient extends DistributorClient {
   private static readonly DEFAULT_NAME = "MAO Distribution";
   walletClient: WalletClient;
 
+  /**
+   * Creates a new MAODistributorClient instance
+   * @param chainId - ID of the blockchain network
+   * @param client - Object containing public and wallet clients
+   */
   constructor(chainId: number, client: { publicClient: PublicClient; walletClient: WalletClient }) {
     const { address } = getArtifact(chainId, "DAODistributor");
     super({ address: getAddress(address), publicClient: client.publicClient });

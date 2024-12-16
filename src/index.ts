@@ -1,3 +1,8 @@
+/**
+ * @file Main entry point for the Peeramid SDK
+ * Exports core components and utilities for interacting with Peeramid protocol
+ */
+
 export { default as Multipass } from "./multipass/Registrar";
 export { default as InstanceBase } from "./rankify/InstanceBase";
 export { default as InstancePlayer } from "./rankify/Player";

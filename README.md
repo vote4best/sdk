@@ -29,21 +29,27 @@ Before setting up the local development environment, ensure you have the followi
 
 To set up your local development environment:
 
-1. Set the required environment variables:
+1. Create your environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` to set your local repository paths.
+
+2. Set the required environment variables:
    ```bash
    export RANKIFY_CONTRACTS_PATH="/path/to/rankify/contracts"
    export EDS_PATH="/path/to/eds"
    export MULTIPASS_PATH="/path/to/multipass"
    ```
 
-2. Make the setup script executable:
+3. Make the setup script executable:
    ```bash
    chmod +x scripts/setup-local-dev.sh
    ```
 
-3. Run the setup script:
+4. Run the setup script:
    ```bash
-   ./scripts/setup-local-dev.sh
+   source .env && ./scripts/setup-local-dev.sh
    ```
 
 This will:
