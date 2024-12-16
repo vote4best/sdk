@@ -1,6 +1,14 @@
 #!/bin/bash
-export NODE_ENV="TEST"
-export FORK_RPC_URL='https://arb1.arbitrum.io/rpc'
+
+# Source .env file if it exists
+if [ -f "$(dirname "$0")/../.env" ]; then
+    source "$(dirname "$0")/../.env"
+fi
+
+# Set default environment variables if not set
+export NODE_ENV="${NODE_ENV:-TEST}"
+export FORK_RPC_URL="${FORK_RPC_URL:-https://arb1.arbitrum.io/rpc}"
+
 # Exit on error
 set -e
 
@@ -13,7 +21,7 @@ tmux_session_exists() {
 start_anvil() {
     if ! tmux_session_exists "anvil"; then
         echo "🔨 Starting Anvil development network in tmux session..."
-        tmux new-session -d -s anvil "anvil -m 'casual vacant letter raw trend tool vacant opera buzz jaguar bridge myself' --fork-url $FORK_RPC_URL"
+        tmux new-session -d -s anvil "anvil -m 'casual vacant letter raw trend tool vacant opera buzz jaguar bridge myself
         sleep 2
 
         # Check if anvil started successfully by looking for its output in tmux
@@ -81,9 +89,9 @@ setup_repo() {
 }
 
 # Setup each repository
-setup_repo "$RANKIFY_CONTRACTS_PATH" "rankify-contracts"
 setup_repo "$EDS_PATH" "eds"
 setup_repo "$MULTIPASS_PATH" "multipass"
+setup_repo "$RANKIFY_CONTRACTS_PATH" "rankify-contracts"
 
 # Link dependencies in SDK
 echo "🔗 Linking dependencies in SDK..."
