@@ -49,7 +49,7 @@ To set up your local development environment:
 
 4. Run the setup script:
    ```bash
-   source .env && ./scripts/setup-local-dev.sh
+   ./scripts/setup-local-dev.sh
    ```
 
 This will:
