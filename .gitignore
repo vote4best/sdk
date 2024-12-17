@@ -3,3 +3,6 @@ node_modules
 .secrets
 /.idea/*
 .DS_Store
+src/abis
+.env
+docs/
