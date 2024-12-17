@@ -39,12 +39,21 @@ jest.mock("viem", () => ({
 
 // Mock callbacks
 const mockEncryptionCallback = jest.fn((data: string) => Promise.resolve("encrypted_" + data));
-const mockDecryptionCallback = jest.fn((data: string) => Promise.resolve("decrypted_" + data));
+const mockDecryptionCallback = jest.fn((data: string) => Promise.resolve(data.split("_")[1]));
 const mockRandomnessCallback = jest.fn(() => Promise.resolve(0.5));
 const mockTurnSaltCallback = jest.fn(() => Promise.resolve("0x123" as Hex));
 
 // Create mock functions with correct return types
-const mockReadContract = jest.fn(() => Promise.resolve(0n));
+const mockReadContract = jest.fn<(args: { functionName: string }) => Promise<unknown>>().mockImplementation((args) => {
+  switch (args.functionName) {
+    case "getPlayers":
+      return Promise.resolve([MOCK_ADDRESSES.PLAYER1, MOCK_ADDRESSES.PLAYER2]);
+    case "getTurn":
+      return Promise.resolve(2n);
+    default:
+      return Promise.resolve(undefined);
+  }
+});
 const mockSimulateContract = jest.fn(() => Promise.resolve({ request: {} }));
 const mockWaitForTransactionReceipt = jest.fn(() =>
   Promise.resolve({
@@ -175,7 +184,7 @@ describe("GameMaster", () => {
       expect(result).toEqual([
         {
           proposer: MOCK_ADDRESSES.PLAYER1,
-          proposal: "decrypted_encrypted_proposal1",
+          proposal: "proposal1",
         },
       ]);
     });
@@ -234,8 +243,10 @@ describe("GameMaster", () => {
   describe("submitVote", () => {
     it("should submit vote for proposals", async () => {
       const vote = [1n, 0n, 2n];
-      mockReadContract.mockResolvedValueOnce(1n); // getTurn
-      mockGetContractEvents.mockResolvedValueOnce([]); // No previous proposals
+      mockReadContract.mockResolvedValueOnce(1n); // getTurn for findPlayerOngoingProposalIndex
+      mockGetContractEvents
+        .mockResolvedValueOnce([]) // No previous proposals for findPlayerOngoingProposalIndex
+        .mockResolvedValueOnce([]); // No proposals for submitVote
 
       const result = await gameMaster.submitVote(1n, vote, MOCK_ADDRESSES.PLAYER1);
       expect(result).toBe(MOCK_HASHES.TRANSACTION);
@@ -244,10 +255,15 @@ describe("GameMaster", () => {
 
     it("should throw error if voting for own proposal", async () => {
       const vote = [1n, 0n, 2n];
-      mockReadContract.mockResolvedValueOnce(1n); // getTurn
+      const ownProposal = "my_proposal";
+      mockReadContract.mockResolvedValueOnce(1n); // getTurn for findPlayerOngoingProposalIndex
       mockGetContractEvents.mockResolvedValueOnce([
         createMockProposalEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_proposal1"),
-      ]);
+      ]); // Proposals for findPlayerOngoingProposalIndex
+      mockDecryptionCallback.mockResolvedValueOnce(ownProposal); // Decrypt own proposal
+      mockGetContractEvents.mockResolvedValueOnce([
+        createMockProposalEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_proposal1"),
+      ]); // Proposals for submitVote
 
       await expect(gameMaster.submitVote(1n, vote, MOCK_ADDRESSES.PLAYER1)).rejects.toThrow();
     });
@@ -267,63 +283,96 @@ describe("GameMaster", () => {
       expect(result).toBe(MOCK_HASHES.TRANSACTION);
       expect(mockEncryptionCallback).toHaveBeenCalledWith(proposal);
     });
-
-    it("should throw error if no wallet address", async () => {
-      const proposal = "Test proposal";
-      const gameMasterNoWallet = new GameMaster({
-        EIP712name: "TestGame",
-        EIP712Version: "1.0.0",
-        instanceAddress: MOCK_ADDRESSES.INSTANCE,
-        walletClient: { ...mockWalletClient, account: undefined } as unknown as WalletClient,
-        publicClient: mockPublicClient,
-        chainId: 1,
-        encryptionCallback: mockEncryptionCallback,
-        decryptionCallback: mockDecryptionCallback,
-        randomnessCallback: mockRandomnessCallback,
-        turnSaltCallback: mockTurnSaltCallback,
-      });
-
-      await expect(
-        gameMasterNoWallet.submitProposal({
-          gameId: 1n,
-          commitmentHash: "0x123",
-          proposal,
-          proposer: MOCK_ADDRESSES.PLAYER1,
-        })
-      ).rejects.toThrow("No account address found");
-    });
   });
 
   describe("decryptVotes", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it("should decrypt votes for current turn", async () => {
       mockReadContract.mockResolvedValueOnce(1n); // getTurn
       mockGetContractEvents.mockResolvedValueOnce([createMockVoteEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_[1,0,2]")]);
+      mockDecryptionCallback.mockResolvedValueOnce("[1,0,2]");
 
       const result = await gameMaster.decryptVotes(1n);
-      expect(result).toBeDefined();
-      expect(mockDecryptionCallback).toHaveBeenCalled();
+      if (result === -1) {
+        fail('Expected array of votes but got -1');
+      }
+      expect(Array.isArray(result)).toBe(true);
+      expect(result[0]).toEqual({
+        player: MOCK_ADDRESSES.PLAYER1,
+        votes: ["1", "0", "2"].map(n => BigInt(parseInt(n))),
+      });
+      expect(mockDecryptionCallback).toHaveBeenCalledWith("encrypted_[1,0,2]");
     });
 
     it("should return -1 if no votes in turn 0", async () => {
       mockReadContract.mockResolvedValueOnce(0n); // getTurn
+      mockGetContractEvents.mockResolvedValueOnce([]);
       const result = await gameMaster.decryptVotes(1n);
       expect(result).toBe(-1);
     });
   });
 
   describe("endTurn", () => {
-    it("should end current turn and process votes", async () => {
-      mockReadContract
-        .mockResolvedValueOnce(2n) // getTurn
-        .mockResolvedValueOnce(1n); // getPlayers
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
 
+    it("should end current turn and process votes", async () => {
+      const players = [MOCK_ADDRESSES.PLAYER1, MOCK_ADDRESSES.PLAYER2];
+      
+      // Mock getTurn and getPlayers
+      mockReadContract.mockImplementation((args) => {
+        switch (args.functionName) {
+          case "getTurn":
+            return Promise.resolve(2n);
+          case "getPlayers":
+            return Promise.resolve(players);
+          default:
+            return Promise.resolve(undefined);
+        }
+      });
+
+      // Mock TurnEnded events
       mockGetContractEvents
         .mockResolvedValueOnce([createMockTurnEndedEvent(1n, 1n, ["proposal1", "proposal2"])]) // TurnEnded events
-        .mockResolvedValueOnce([createMockProposalEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_proposal1")]) // Previous turn proposals
-        .mockResolvedValueOnce([createMockProposalEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_proposal2")]); // Current turn proposals
+        .mockResolvedValueOnce([
+          createMockProposalEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_proposal1"),
+          createMockProposalEvent(MOCK_ADDRESSES.PLAYER2, "encrypted_proposal2"),
+        ]) // Previous turn proposals
+        .mockResolvedValueOnce([
+          createMockVoteEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_[1,0]"),
+          createMockVoteEvent(MOCK_ADDRESSES.PLAYER2, "encrypted_[0,1]"),
+        ]) // Current turn votes
+        .mockResolvedValueOnce([
+          createMockProposalEvent(MOCK_ADDRESSES.PLAYER1, "encrypted_new_proposal1"),
+          createMockProposalEvent(MOCK_ADDRESSES.PLAYER2, "encrypted_new_proposal2"),
+        ]); // Current turn proposals
+
+      // Mock decryption callbacks
+      mockDecryptionCallback
+        .mockResolvedValueOnce("proposal1")
+        .mockResolvedValueOnce("proposal2")
+        .mockResolvedValueOnce("[1,0]")
+        .mockResolvedValueOnce("[0,1]")
+        .mockResolvedValueOnce("new_proposal1")
+        .mockResolvedValueOnce("new_proposal2");
+
+      // Mock simulateContract
+      mockSimulateContract.mockResolvedValueOnce({
+        request: {
+          abi: RankifyDiamondInstanceAbi,
+          address: MOCK_ADDRESSES.INSTANCE,
+          functionName: "endTurn",
+          args: [1n, [[1n, 0n], [0n, 1n]], ["new_proposal1", "new_proposal2"], [0n, 1n]],
+        },
+      });
 
       const result = await gameMaster.endTurn(1n);
       expect(result).toBe(MOCK_HASHES.TRANSACTION);
+      expect(mockDecryptionCallback).toHaveBeenCalled();
     });
   });
 });

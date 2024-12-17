@@ -77,11 +77,16 @@ export class GameMaster extends InstanceBase {
       args: { gameId: gameId, turn: turn, proposer: proposer },
     });
 
+    if (evts.length == 0) return [];
+
     const proposals = await Promise.all(
-      evts.map(async (log) => ({
-        proposer: log.args.proposer,
-        proposal: await this.decryptionCallback(log.args.proposalEncryptedByGM),
-      }))
+      evts.map(async (log) => {
+        if (!log.args.proposalEncryptedByGM) throw new Error("No proposalEncryptedByGM");
+        return {
+          proposer: log.args.proposer,
+          proposal: await this.decryptionCallback(log.args.proposalEncryptedByGM),
+        };
+      })
     );
 
     return proposals;
@@ -142,13 +147,7 @@ export class GameMaster extends InstanceBase {
    * @returns Index of the player's proposal, -1 if not found
    */
   findPlayerOngoingProposalIndex = async (gameId: bigint, player: Address) => {
-    const ongoingProposals = await this.getOngoingProposals(gameId);
-    const currentTurn = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: IRankifyInstanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
+    const { currentTurn, proposals } = await this.getOngoingProposals(gameId);
     if (currentTurn == 0n) {
       console.error("No proposals in turn 0");
       return -1;
@@ -158,12 +157,7 @@ export class GameMaster extends InstanceBase {
     const playersProposal = await this.decryptProposals(gameId, turn, player).then((ps) =>
       ps.length > 0 ? ps[0].proposal : undefined
     );
-    console.log(
-      "finding players ongoing proposal",
-      playersProposal,
-      ongoingProposals?.findIndex((p) => p === playersProposal)
-    );
-    return playersProposal ? ongoingProposals.findIndex((p) => p === playersProposal) : -1;
+    return playersProposal ? proposals.findIndex((p) => p === playersProposal) : -1;
   };
 
   /**
@@ -179,8 +173,8 @@ export class GameMaster extends InstanceBase {
     if (!voter) throw new Error("No voter");
     const proposerIdx = await this.findPlayerOngoingProposalIndex(gameId, voter);
     if (proposerIdx != -1 && vote[proposerIdx] !== 0n) throw new Error("You cannot vote for your own proposal");
-    const votesHidden = await this.encryptionCallback(JSON.stringify(vote));
-    if (!this.walletClient.account.address) throw new Error("No account address found");
+    const votesHidden = await this.encryptionCallback(JSON.stringify(vote.map((vi) => vi.toString())));
+    if (!this.walletClient?.account?.address) throw new Error("No account address found");
     const { request } = await this.publicClient.simulateContract({
       account: this.walletClient.account,
       address: this.instanceAddress,
@@ -252,12 +246,15 @@ export class GameMaster extends InstanceBase {
       args: { gameId, turn },
     });
 
-    const votes = Promise.all(
+    const votes = await Promise.all(
       evts.map(async (event) => {
+        if (!event.args.player) throw new Error("No player found in event data, that is unexpected");
+        if (!event.args.votesHidden) throw new Error("No votesHidden found in event data, that is unexpected");
         const decryptedVote = await this.decryptionCallback(event.args.votesHidden);
+        const parsedVotes = JSON.parse(decryptedVote) as string[];
         return {
           player: event.args.player,
-          votes: JSON.parse(decryptedVote) as bigint[],
+          votes: parsedVotes.map((v) => BigInt(v)),
         };
       })
     );
@@ -277,11 +274,12 @@ export class GameMaster extends InstanceBase {
       functionName: "getTurn",
       args: [gameId],
     });
-    if (currentTurn == 0n) {
+    if (currentTurn === 0n) {
       console.error("No proposals in turn 0");
       return -1;
     }
-    return this.decryptTurnVotes(gameId, currentTurn);
+    const votes = await this.decryptTurnVotes(gameId, currentTurn);
+    return votes.length === 0 ? -1 : votes;
   };
 
   /**
@@ -339,12 +337,16 @@ export class GameMaster extends InstanceBase {
       args: [gameId],
     });
 
-    const players = await this.publicClient.readContract({
+    const players = (await this.publicClient.readContract({
       address: this.instanceAddress,
       abi: RankifyDiamondInstanceAbi,
       functionName: "getPlayers",
       args: [gameId],
-    });
+    })) as Address[];
+
+    if (!Array.isArray(players)) {
+      throw new Error("Expected players to be an array");
+    }
 
     const oldProposals: {
       proposer: Address;
@@ -354,7 +356,6 @@ export class GameMaster extends InstanceBase {
     let votes: { player: Address; votes: bigint[] }[] = [];
     //Proposals sequence is directly corresponding to proposers sequence
     if (turn != 1n) {
-      // const filter = this.contract.filters.TurnEnded(gameId, turn - 1);
       const endedEvents = await this.publicClient.getContractEvents({
         address: this.instanceAddress,
         abi: RankifyDiamondInstanceAbi,
@@ -365,15 +366,29 @@ export class GameMaster extends InstanceBase {
       if (endedEvents.length > 1) throw new Error("Multiple turns ended");
       const args = evt.args;
       const decryptedProposals = await this.decryptProposals(gameId, turn - 1n);
-      args.newProposals.forEach((proposal, idx) => {
-        oldProposals[idx] = {
-          proposer: decryptedProposals.find((p) => p.proposal === proposal).proposer,
-          proposal: proposal,
-        };
-      });
+      if (args.newProposals) {
+        args.newProposals.forEach((proposal, idx) => {
+          const proposer = decryptedProposals.find((p) => p.proposal === proposal)?.proposer;
+          if (!proposer) throw new Error("No proposer found for proposal");
+          oldProposals[idx] = {
+            proposer,
+            proposal: proposal,
+          };
+        });
+      } else {
+        // Boundary case if no-one proposed a thing
+        players.forEach((p, idx) => {
+          oldProposals[idx] = {
+            proposer: p,
+            proposal: "",
+          };
+        });
+      }
       votes = await this.decryptTurnVotes(gameId, turn).then((voteSubmissions) => {
-        const orderedVotes: { player: Address; votes: bigint[] }[] = [];
-        console.log("votes", voteSubmissions);
+        const orderedVotes: { player: Address; votes: bigint[] }[] = players.map((player) => ({
+          player,
+          votes: new Array(players.length).fill(0n) as bigint[],
+        }));
         players.forEach((player, playerIdx) => {
           const vote = voteSubmissions.find((v) => v.player === player);
           if (vote) orderedVotes[playerIdx] = vote;
