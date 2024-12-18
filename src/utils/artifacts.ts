@@ -5,6 +5,7 @@ import {
   getContract as viemGetContract,
   type GetContractReturnType,
   AbiItem,
+  Hex,
 } from "viem";
 
 import rankifyAbi from "../abis/Rankify";
@@ -41,7 +42,12 @@ export const getArtifact = (
   chainId: number,
   artifactName: ArtifactTypes,
   overrideChainName?: string
-): { abi: readonly AbiItem[]; address: Address; execute: { args: string[] } } => {
+): {
+  abi: readonly AbiItem[];
+  address: Address;
+  execute: { args: string[] };
+  receipt: { from: Address; transactionHash: Hex; blockNumber: number; args: string[] };
+} => {
   const chainPath = overrideChainName ?? getChainPath(chainId);
   const artifact = (
     artifactName === "Multipass"
@@ -51,6 +57,7 @@ export const getArtifact = (
     abi: AbiItem[];
     address: Address;
     execute: { args: string[] };
+    receipt: { from: Address; transactionHash: Hex; blockNumber: number; args: string[] };
   };
 
   if (!artifact) {
@@ -60,6 +67,7 @@ export const getArtifact = (
     address: artifact.address,
     execute: artifact.execute,
     abi: artifact.abi,
+    receipt: artifact.receipt,
   };
 };
 
