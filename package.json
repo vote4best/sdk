@@ -1,7 +1,7 @@
 {
   "name": "@peeramid-labs/sdk",
   "description": "Peeramid Labs js client library",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": "true",
   "type": "module",
   "main": "./src/index.ts",
@@ -40,7 +40,7 @@
     "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch",
-    "prepublishOnly": "pnpm run build && pnpm run docs"
+    "prepublishOnly": "pnpm run docs"
   },
   "dependencies": {
     "@peeramid-labs/eds": "^2.2.0",
