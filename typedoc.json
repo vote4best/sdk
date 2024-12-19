@@ -15,16 +15,13 @@
   "excludeNotDocumented": false,
   "sort": ["source-order"],
   "categorizeByGroup": true,
-  "categoryOrder": [
-    "Core",
-    "Rankify",
-    "Multipass",
-    "*"
-  ],
-  "intentionallyNotExported": [
-    "RankifyAbi",
-    "MultipassAbi",
-    "SimpleAccessManagerAbi",
-    "DAODistributorAbi"
-  ]
+  "defaultCategory": "API",
+  "categoryOrder": ["API", "*"],
+  "intentionallyNotExported": ["RankifyAbi", "MultipassAbi", "SimpleAccessManagerAbi", "DAODistributorAbi"],
+  "entryDocument": "index.md",
+  "hideBreadcrumbs": true,
+  "hideInPageTOC": false,
+  "cleanOutputDir": true,
+  "disableSources": true,
+  "hideGenerator": true
 }
