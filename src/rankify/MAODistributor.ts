@@ -22,7 +22,6 @@ import {
   PublicClient,
   WalletClient,
   parseEventLogs,
-  Address,
 } from "viem";
 import MaoDistributionAbi from "../abis/MAODistribution";
 import distributorAbi from "../abis/IDistributor";
@@ -85,14 +84,14 @@ export interface MAOInstanceContracts {
  */
 export class MAODistributorClient extends DistributorClient {
   private static readonly DEFAULT_NAME = "MAO Distribution";
-  walletClient?: WalletClient;
+  walletClient: WalletClient;
 
   /**
    * Creates a new MAODistributorClient instance
    * @param chainId - ID of the blockchain network
    * @param client - Object containing public and wallet clients
    */
-  constructor(chainId: number, client: { publicClient: PublicClient; walletClient?: WalletClient }) {
+  constructor(chainId: number, client: { publicClient: PublicClient; walletClient: WalletClient }) {
     const { address } = getArtifact(chainId, "DAODistributor");
     super({ address: getAddress(address), publicClient: client.publicClient });
     this.walletClient = client.walletClient;
@@ -108,31 +107,31 @@ export class MAODistributorClient extends DistributorClient {
     const instance = getContract({
       address: getAddress(addresses.ACIDInstance),
       abi: instanceAbi,
-      client: this.walletClient ?? this.publicClient,
+      client: this.walletClient,
     });
 
     const rankToken = getContract({
       address: getAddress(addresses.rankToken),
       abi: rankTokenAbi,
-      client: this.walletClient ?? this.publicClient,
+      client: this.walletClient,
     });
 
     const govtToken = getContract({
       address: getAddress(addresses.govToken),
       abi: govtTokenAbi,
-      client: this.walletClient ?? this.publicClient,
+      client: this.walletClient,
     });
 
     const govTokenAccessManager = getContract({
       address: getAddress(addresses.govTokenAccessManager),
       abi: govtAccessManagerAbi,
-      client: this.walletClient ?? this.publicClient,
+      client: this.walletClient,
     });
 
     const ACIDAccessManager = getContract({
       address: getAddress(addresses.ACIDAccessManager),
       abi: govtAccessManagerAbi,
-      client: this.walletClient ?? this.publicClient,
+      client: this.walletClient,
     });
 
     return { rankToken, instance, govtToken, govTokenAccessManager, ACIDAccessManager };
@@ -160,11 +159,6 @@ export class MAODistributorClient extends DistributorClient {
       .map((ip) => this.addressesToContracts(ip));
 
     return instances;
-  }
-
-  parseInstantiated = parseInstantiated;
-  parseToContracts(instances: readonly Address[]) {
-    return this.addressesToContracts(this.parseInstantiated(instances as string[]));
   }
 
   async getMAOInstance(
@@ -207,7 +201,6 @@ export class MAODistributorClient extends DistributorClient {
     chain: Chain
   ): Promise<MAOInstanceContracts> {
     if (!args) throw new Error("args is required");
-    if (!this.walletClient) throw new Error("walletClient is required, use constructor with walletClient");
     const abiItem = getAbiItem({ abi: MaoDistributionAbi, name: "distributionSchema" });
     const encodedParams = encodeAbiParameters(abiItem.inputs, args);
     const encodedName = stringToHex(name, { size: 32 });

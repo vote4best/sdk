@@ -48,7 +48,7 @@
     "crypto-js": "^4.1.1",
     "lodash": "^4.17.21",
     "rankify-contracts": "^0.10.1",
-    "viem": "^2.21.55"
+    "viem": "^2.21.54"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.8",

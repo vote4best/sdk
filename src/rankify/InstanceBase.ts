@@ -163,13 +163,14 @@ export default class InstanceBase {
    * @returns The ongoing proposals for the specified game.
    */
   getOngoingProposals = async (gameId: bigint) => {
-    const currentTurn = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
     try {
+      const currentTurn = await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getTurn",
+        args: [gameId],
+      });
+
       const lastTurnEndedEvent = await this.publicClient.getContractEvents({
         address: this.instanceAddress,
         abi: instanceAbi,
@@ -183,10 +184,10 @@ export default class InstanceBase {
       }
 
       const args = lastTurnEndedEvent[0].args as { newProposals: unknown[] };
-      return { currentTurn, proposals: args.newProposals };
+      return args.newProposals;
     } catch (error) {
       console.error("Error in getOngoingProposals:", error);
-      return { currentTurn, proposals: [] };
+      return [];
     }
   };
 
