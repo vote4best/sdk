@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 2.0.2
+
+### Patch Changes
+
+- [`c272bc9b44016c91d770c376631afc16ae04a83e`](https://github.com/peeramid-labs/sdk/commit/c272bc9b44016c91d770c376631afc16ae04a83e) Thanks [@peersky](https://github.com/peersky)! - during build copy docs to dist
+
 ## 2.0.1
 
 ### Patch Changes
