@@ -27,10 +27,10 @@
     "generate-chain-mapping": "node ./scripts/generateChainMapping.mjs",
     "prebuild": "node scripts/copyAbi.cjs && jq '.type = \"commonjs\"' package.json > temp.json && mv temp.json package.json",
     "build-esm": "tsc --project tsconfig.esm.json",
-    "build-all": "pnpm generate-chain-mapping && pnpm run build-commonjs && pnpm run build-esm",
+    "build-all": "pnpm generate-chain-mapping && pnpm run build-commonjs && pnpm run build-esm && pnpm run docs",
     "build-commonjs": "tsc --project tsconfig.commonjs.json",
     "build": "pnpm build-all && node ./scripts/copyPackageFile.cjs prod",
-    "postbuild": "jq '.type = \"module\"' package.json > temp.json && mv temp.json package.json && cp README.md dist && cp -r .changeset ./dist/.changeset && prettier --write \"dist/**/*.{ts,js,json}\" &&  cd ./dist && pnpm install",
+    "postbuild": "jq '.type = \"module\"' package.json > temp.json && mv temp.json package.json && cp README.md dist && cp -r .changeset ./dist/.changeset && cp -r docs dist/docs && prettier --write \"dist/**/*.{ts,js,json,md}\" && cd ./dist && pnpm install",
     "dist": "changeset && changeset version && pnpm build && cp -r .changeset ./dist && cd dist && pnpm changeset publish",
     "version": "changeset version",
     "release": "pnpm build && cd ./dist && changeset publish",
@@ -39,8 +39,7 @@
     "test:watch": "jest --watch",
     "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint",
     "docs": "typedoc",
-    "docs:watch": "typedoc --watch",
-    "prepublishOnly": "pnpm run docs"
+    "docs:watch": "typedoc --watch"
   },
   "dependencies": {
     "@peeramid-labs/eds": "^2.2.0",
