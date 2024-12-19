@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-    "declarationMap": true,
-    "importHelpers": false,
-    "target": "es2022",
-    "module": "CommonJS",
-    "lib": ["es2022", "es5"],
+    "target": "ESNext",
+    "module": "esnext",
+    "lib": ["es2020", "dom", "esnext"],
     "declaration": true,
-    "outDir": "dist",
-    "resolveJsonModule": true,
-    "strict": false,
+    "declarationMap": true,
     "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
-  "exclude": []
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/__tests__/*"]
 }
