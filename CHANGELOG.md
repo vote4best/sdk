@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 2.0.1
+
+### Patch Changes
+
+- [`5628fadf748d5cd878025645722f954ef3a17b3d`](https://github.com/peeramid-labs/sdk/commit/5628fadf748d5cd878025645722f954ef3a17b3d) Thanks [@peersky](https://github.com/peersky)! - fixed docs generation to mkdocs
+
 ## 2.0.0
 
 ### Major Changes
