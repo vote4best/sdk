@@ -1,5 +1,5 @@
 {
-  "name": "rankify-js",
+  "name": "@peeramid-labs/sdk",
   "description": "Peeramid Labs js client library",
   "version": "1.1.0",
   "private": "true",

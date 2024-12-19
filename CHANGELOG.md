@@ -1,4 +1,4 @@
-# rankify-js
+# peeramid-labs/sdk
 
 ## 1.1.0
 
