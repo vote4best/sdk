@@ -144,7 +144,8 @@ export class MAODistributorClient extends DistributorClient {
    * @returns Array of MAOInstances contract instances
    */
   async getMAOInstances(
-    namedDistribution: string = MAODistributorClient.DEFAULT_NAME
+    namedDistribution: string = MAODistributorClient.DEFAULT_NAME,
+    fromBlock: bigint = 1n
   ): Promise<MAOInstanceContracts[]> {
     const logs = await this.publicClient.getContractEvents({
       address: this.address,
@@ -153,6 +154,8 @@ export class MAODistributorClient extends DistributorClient {
       args: {
         distributionId: stringToHex(namedDistribution, { size: 32 }),
       },
+      fromBlock,
+      toBlock: "latest",
     });
 
     const instances = logs

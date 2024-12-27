@@ -19,6 +19,7 @@ export default class RankTokenClient {
       client: this.publicClient,
     });
     return rankToken.read.contractURI();
+    
   };
 
   getRankTokenBalance = async (tokenId: bigint, account: Address) => {
