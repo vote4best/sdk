@@ -3,7 +3,7 @@
  */
 
 import { Hex, WalletClient } from "viem";
-export { LibMultipass, Multipass as MultipassDiamond } from "@peeramid-labs/multipass/types/src/Multipass";
+export { type LibMultipass, type Multipass as MultipassDiamond } from "@peeramid-labs/multipass/types/src/Multipass";
 
 /**
  * Criteria used for searching entities in the system

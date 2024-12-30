@@ -19,7 +19,7 @@ export class DistributorClient {
     return contract.read.getDistributions();
   }
 
-  async getInstances(distributorsId: Hex): Promise<Address[][]> {
+  async getInstances(distributorsId: Hex, fromBlock: bigint = 1n): Promise<Address[][]> {
     const contract = getContract({
       address: this.address,
       abi: DistributorAbi,
@@ -30,7 +30,7 @@ export class DistributorClient {
       {
         distributionId: distributorsId,
       },
-      { toBlock: "latest", fromBlock: 1n } //ToDo: Parametrize this
+      { toBlock: "latest", fromBlock }
     );
 
     return events.map((log) => log.args.instances as Address[]);
