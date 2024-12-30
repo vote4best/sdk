@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 2.1.0
+
+### Minor Changes
+
+- [#59](https://github.com/peeramid-labs/sdk/pull/59) [`8c1497e623ce1a15678e3f8195c2acebf218baba`](https://github.com/peeramid-labs/sdk/commit/8c1497e623ce1a15678e3f8195c2acebf218baba) Thanks [@theKosmoss](https://github.com/theKosmoss)! - Fixed MaoDistributor type issues. Parameterized some event log methods
+
 ## 2.0.2
 
 ### Patch Changes
