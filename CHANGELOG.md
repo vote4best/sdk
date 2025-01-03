@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 2.1.1
+
+### Patch Changes
+
+- [#61](https://github.com/peeramid-labs/sdk/pull/61) [`1f976c6bc0aedc87515331cb4918c0e71018fdf7`](https://github.com/peeramid-labs/sdk/commit/1f976c6bc0aedc87515331cb4918c0e71018fdf7) Thanks [@peersky](https://github.com/peersky)! - exported gamemaster class to index
+
 ## 2.1.0
 
 ### Minor Changes
