@@ -41,7 +41,7 @@ export interface RegisterMessage {
   nonce: bigint;
 }
 
-export type SUBMISSION_TYPES = "Markdown" | "Image" | "Video" | "Audio" | "BYTES";
+export type SUBMISSION_TYPES = "MARKDOWN" | "IMAGE" | "VIDEO" | "AUDIO" | "BYTES";
 export type CONTENT_STORAGE = "IPFS" | "ARWEAVE" | "USER_URL";
 
 export type FellowshipMetadata = {
@@ -103,14 +103,14 @@ export type BytesRules = {
 };
 
 export type SubmissionContent = {
-  Audio: {
+  AUDIO: {
     data: ArrayBuffer;
     duration: number;
     bitrate?: number;
     channels?: number;
     sampleRate?: number;
   };
-  Video: {
+  VIDEO: {
     data: ArrayBuffer;
     duration: number;
     width: number;
@@ -118,13 +118,13 @@ export type SubmissionContent = {
     frameRate?: number;
     bitrate?: number;
   };
-  Image: {
+  IMAGE: {
     data: ArrayBuffer;
     width: number;
     height: number;
     format: string;
   };
-  Markdown: {
+  MARKDOWN: {
     content: string;
     length: number;
   };
