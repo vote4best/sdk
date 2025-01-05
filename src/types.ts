@@ -57,6 +57,7 @@ export type FellowshipMetadata = {
     type: SUBMISSION_TYPES;
     rules: AudioRules | VideoRules | ImageRules | TextRules | BytesRules;
     customValidation?: ValidationRule[];
+    store_at: CONTENT_STORAGE;
   }[];
 };
 
@@ -136,7 +137,7 @@ export type SubmissionContent = {
 }[SUBMISSION_TYPES];
 
 export type ValidationRule = {
-  type: "regex" | "function";
+  type: "script_url" | "regex" | "function";
   value: string | ((content: SubmissionContent) => boolean);
   errorMessage: string;
 };
