@@ -41,8 +41,19 @@ export interface RegisterMessage {
   nonce: bigint;
 }
 
-export type SUBMISSION_TYPES = "MARKDOWN" | "IMAGE" | "VIDEO" | "AUDIO" | "BYTES";
-export type CONTENT_STORAGE = "IPFS" | "ARWEAVE" | "USER_URL";
+export enum SUBMISSION_TYPES {
+  MARKDOWN = "MARKDOWN",
+  IMAGE = "IMAGE",
+  VIDEO = "VIDEO",
+  AUDIO = "AUDIO",
+  BYTES = "BYTES"
+}
+
+export enum CONTENT_STORAGE {
+  IPFS = "IPFS",
+  ARWEAVE = "ARWEAVE",
+  USER_URL = "USER_URL"
+}
 
 export type FellowshipMetadata = {
   // extends https://docs.opensea.io/docs/contract-level-metadata
