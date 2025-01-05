@@ -7,6 +7,7 @@ import {
   AbiItem,
   Hex,
   Log,
+  parseEventLogs,
 } from "viem";
 
 import rankifyAbi from "../abis/Rankify";
@@ -76,11 +77,12 @@ export const getArtifact = (
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
+
   return {
     address: artifact.address,
     execute: artifact.execute,
     abi: artifact.abi,
-    receipt: artifact.receipt,
+    receipt: { ...artifact.receipt, logs: parseEventLogs({ abi: artifact.abi, logs: artifact.receipt.logs }) },
   };
 };
 
