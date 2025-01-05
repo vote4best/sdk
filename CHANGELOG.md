@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 2.1.2
+
+### Patch Changes
+
+- [#63](https://github.com/peeramid-labs/sdk/pull/63) [`afa73dfade1e39074217284feacb8355349ca64a`](https://github.com/peeramid-labs/sdk/commit/afa73dfade1e39074217284feacb8355349ca64a) Thanks [@peersky](https://github.com/peersky)! - added logs to receipt from get arifact
+
 ## 2.1.1
 
 ### Patch Changes
