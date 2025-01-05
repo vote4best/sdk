@@ -297,12 +297,12 @@ describe("GameMaster", () => {
 
       const result = await gameMaster.decryptVotes(1n);
       if (result === -1) {
-        fail('Expected array of votes but got -1');
+        fail("Expected array of votes but got -1");
       }
       expect(Array.isArray(result)).toBe(true);
       expect(result[0]).toEqual({
         player: MOCK_ADDRESSES.PLAYER1,
-        votes: ["1", "0", "2"].map(n => BigInt(parseInt(n))),
+        votes: ["1", "0", "2"].map((n) => BigInt(parseInt(n))),
       });
       expect(mockDecryptionCallback).toHaveBeenCalledWith("encrypted_[1,0,2]");
     });
@@ -322,7 +322,7 @@ describe("GameMaster", () => {
 
     it("should end current turn and process votes", async () => {
       const players = [MOCK_ADDRESSES.PLAYER1, MOCK_ADDRESSES.PLAYER2];
-      
+
       // Mock getTurn and getPlayers
       mockReadContract.mockImplementation((args) => {
         switch (args.functionName) {
@@ -366,7 +366,15 @@ describe("GameMaster", () => {
           abi: RankifyDiamondInstanceAbi,
           address: MOCK_ADDRESSES.INSTANCE,
           functionName: "endTurn",
-          args: [1n, [[1n, 0n], [0n, 1n]], ["new_proposal1", "new_proposal2"], [0n, 1n]],
+          args: [
+            1n,
+            [
+              [1n, 0n],
+              [0n, 1n],
+            ],
+            ["new_proposal1", "new_proposal2"],
+            [0n, 1n],
+          ],
         },
       });
 
