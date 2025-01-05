@@ -2,8 +2,7 @@
  * @file Core type definitions for the Peeramid SDK
  */
 
-import { Hex, WalletClient } from "viem";
-export { type LibMultipass, type Multipass as MultipassDiamond } from "@peeramid-labs/multipass/types/src/Multipass";
+import { Address, Hex, WalletClient } from "viem";
 
 /**
  * Criteria used for searching entities in the system
@@ -41,3 +40,115 @@ export interface RegisterMessage {
   /** Registration nonce */
   nonce: bigint;
 }
+
+export enum SUBMISSION_TYPES {
+  MARKDOWN = "MARKDOWN",
+  IMAGE = "IMAGE",
+  VIDEO = "VIDEO",
+  AUDIO = "AUDIO",
+  BYTES = "BYTES",
+}
+
+export enum CONTENT_STORAGE {
+  IPFS = "IPFS",
+  ARWEAVE = "ARWEAVE",
+  USER_URL = "USER_URL",
+}
+
+export type FellowshipMetadata = {
+  // extends https://docs.opensea.io/docs/contract-level-metadata
+  name: string;
+  description: string;
+  image: string; // ar://<hash> or ipfs://<hash> or https://<url>
+  banner_image?: string;
+  featured_image?: string;
+  external_link?: string;
+  collaborators?: Address[];
+  submissions: {
+    type: SUBMISSION_TYPES;
+    rules: AudioRules | VideoRules | ImageRules | TextRules | BytesRules;
+    customValidation?: ValidationRule[];
+    store_at: CONTENT_STORAGE;
+  }[];
+};
+
+export type MediaFormat = {
+  mimeTypes: string[];
+  maxSizeBytes?: number;
+  minSizeBytes?: number;
+};
+
+export type AudioRules = MediaFormat & {
+  maxDurationSeconds?: number;
+  minDurationSeconds?: number;
+  allowedEncodings?: string[]; // e.g., ['mp3', 'wav', 'ogg']
+  minBitrate?: number;
+  maxBitrate?: number;
+};
+
+export type VideoRules = AudioRules & {
+  minResolution?: { width: number; height: number };
+  maxResolution?: { width: number; height: number };
+  maxFrameRate?: number;
+  minFrameRate?: number;
+};
+
+export type ImageRules = MediaFormat & {
+  minResolution?: { width: number; height: number };
+  maxResolution?: { width: number; height: number };
+  allowedFormats?: string[]; // e.g., ['jpeg', 'png', 'webp']
+  maxAspectRatio?: number;
+  minAspectRatio?: number;
+};
+
+export type TextRules = {
+  minLength?: number;
+  maxLength?: number;
+  allowedFormats?: string[]; // e.g., ['plain', 'markdown', 'html']
+  allowedCharsets?: string[]; // e.g., ['utf-8', 'ascii']
+};
+
+export type BytesRules = {
+  minSize?: number;
+  maxSize?: number;
+  allowedEncodings?: string[]; // e.g., ['base64', 'hex']
+};
+
+export type SubmissionContent = {
+  AUDIO: {
+    data: ArrayBuffer;
+    duration: number;
+    bitrate?: number;
+    channels?: number;
+    sampleRate?: number;
+  };
+  VIDEO: {
+    data: ArrayBuffer;
+    duration: number;
+    width: number;
+    height: number;
+    frameRate?: number;
+    bitrate?: number;
+  };
+  IMAGE: {
+    data: ArrayBuffer;
+    width: number;
+    height: number;
+    format: string;
+  };
+  MARKDOWN: {
+    content: string;
+    length: number;
+  };
+  BYTES: {
+    data: ArrayBuffer;
+    size: number;
+    encoding?: string;
+  };
+}[SUBMISSION_TYPES];
+
+export type ValidationRule = {
+  type: "script_url" | "regex" | "function";
+  value: string | ((content: SubmissionContent) => boolean);
+  errorMessage: string;
+};
