@@ -44,14 +44,14 @@ export default class RankTokenClient {
       if (!metadata.collaborators.every((addr) => typeof addr === "string")) return false;
     }
 
-    // Check rules
-    if (!Array.isArray(metadata.rules)) return false;
+    // Check submissions
+    if (!Array.isArray(metadata.submissions)) return false;
 
-    return metadata.rules.every((rule) => {
-      if (!rule || typeof rule !== "object") return false;
-      const r = rule as Record<string, unknown>;
+    return metadata.submissions.every((submission) => {
+      if (!submission || typeof submission !== "object") return false;
+      const r = submission as Record<string, unknown>;
 
-      // Check rule fields
+      // Check submission fields
       const submissionType = r.type as string;
       const storageType = r.store_at as string | undefined;
 
@@ -82,7 +82,7 @@ export default class RankTokenClient {
       }
 
       const rawData: unknown = await response.json();
-      
+
       if (typeof rawData !== "object" || rawData === null) {
         throw new Error("Invalid response: expected JSON object");
       }

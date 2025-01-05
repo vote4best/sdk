@@ -46,13 +46,13 @@ export enum SUBMISSION_TYPES {
   IMAGE = "IMAGE",
   VIDEO = "VIDEO",
   AUDIO = "AUDIO",
-  BYTES = "BYTES"
+  BYTES = "BYTES",
 }
 
 export enum CONTENT_STORAGE {
   IPFS = "IPFS",
   ARWEAVE = "ARWEAVE",
-  USER_URL = "USER_URL"
+  USER_URL = "USER_URL",
 }
 
 export type FellowshipMetadata = {
@@ -64,7 +64,7 @@ export type FellowshipMetadata = {
   featured_image?: string;
   external_link?: string;
   collaborators?: Address[];
-  rules: {
+  submissions: {
     type: SUBMISSION_TYPES;
     rules: AudioRules | VideoRules | ImageRules | TextRules | BytesRules;
     customValidation?: ValidationRule[];

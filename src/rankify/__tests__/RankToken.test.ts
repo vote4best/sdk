@@ -34,7 +34,7 @@ describe("RankTokenClient", () => {
         "The Meritocratic Interplanetary Autonomous Organization Protocol Council is the decentralized managerial body that governs the development and evolution and growth of Peeramid Network.",
       image: "https://tma.rankify.it/logo.png",
       external_link: "https://tma.rankify.it",
-      rules: [
+      submissions: [
         {
           type: "MARKDOWN" as SUBMISSION_TYPES,
           rules: {
@@ -154,7 +154,7 @@ describe("RankTokenClient", () => {
         featured_image: "ipfs://featured-hash",
         external_link: "https://example.com",
         collaborators: ["0x123", "0x456"],
-        rules: [
+        submissions: [
           {
             type: SUBMISSION_TYPES.AUDIO,
             rules: {
