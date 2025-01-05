@@ -6,6 +6,8 @@ import {
   type GetContractReturnType,
   AbiItem,
   Hex,
+  Log,
+  parseEventLogs,
 } from "viem";
 
 import rankifyAbi from "../abis/Rankify";
@@ -46,7 +48,13 @@ export const getArtifact = (
   abi: readonly AbiItem[];
   address: Address;
   execute: { args: string[] };
-  receipt: { from: Address; transactionHash: Hex; blockNumber: number; args: string[] };
+  receipt: {
+    from: Address;
+    transactionHash: Hex;
+    blockNumber: number;
+    args: string[];
+    logs: Log<bigint, number, false>[];
+  };
 } => {
   const chainPath = overrideChainName ?? getChainPath(chainId);
   const artifact = (
@@ -57,17 +65,24 @@ export const getArtifact = (
     abi: AbiItem[];
     address: Address;
     execute: { args: string[] };
-    receipt: { from: Address; transactionHash: Hex; blockNumber: number; args: string[] };
+    receipt: {
+      from: Address;
+      transactionHash: Hex;
+      blockNumber: number;
+      args: string[];
+      logs: Log<bigint, number, false>[];
+    };
   };
 
   if (!artifact) {
     throw new Error("Contract deployment not found");
   }
+
   return {
     address: artifact.address,
     execute: artifact.execute,
     abi: artifact.abi,
-    receipt: artifact.receipt,
+    receipt: { ...artifact.receipt, logs: parseEventLogs({ abi: artifact.abi, logs: artifact.receipt.logs }) },
   };
 };
 
