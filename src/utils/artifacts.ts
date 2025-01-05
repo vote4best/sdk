@@ -6,6 +6,7 @@ import {
   type GetContractReturnType,
   AbiItem,
   Hex,
+  Log,
 } from "viem";
 
 import rankifyAbi from "../abis/Rankify";
@@ -46,7 +47,13 @@ export const getArtifact = (
   abi: readonly AbiItem[];
   address: Address;
   execute: { args: string[] };
-  receipt: { from: Address; transactionHash: Hex; blockNumber: number; args: string[] };
+  receipt: {
+    from: Address;
+    transactionHash: Hex;
+    blockNumber: number;
+    args: string[];
+    logs: Log<bigint, number, false>[];
+  };
 } => {
   const chainPath = overrideChainName ?? getChainPath(chainId);
   const artifact = (
@@ -57,7 +64,13 @@ export const getArtifact = (
     abi: AbiItem[];
     address: Address;
     execute: { args: string[] };
-    receipt: { from: Address; transactionHash: Hex; blockNumber: number; args: string[] };
+    receipt: {
+      from: Address;
+      transactionHash: Hex;
+      blockNumber: number;
+      args: string[];
+      logs: Log<bigint, number, false>[];
+    };
   };
 
   if (!artifact) {
