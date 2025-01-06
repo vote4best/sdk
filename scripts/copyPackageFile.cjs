@@ -5,10 +5,10 @@ const copyPackageFile = () => {
   const packageJson = require("../package.json");
   console.log("pv", packageJson.version);
   delete packageJson.private;
-  
+
   // Add CLI binary
   packageJson.bin = {
-    peeramid: "./cli/index.js"
+    peeramid: "./cli/cli/index.js",
   };
 
   console.log("stage is", stage);
