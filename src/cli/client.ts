@@ -14,10 +14,7 @@ export const createPublic = (rpcUrl?: string) => {
   });
 };
 
-export const createWallet = async (
-  rpcUrl?: string,
-  key?: string
-): Promise<WalletClient> => {
+export const createWallet = async (rpcUrl?: string, key?: string): Promise<WalletClient> => {
   const endpoint = rpcUrl || process.env.RPC_URL;
   if (!endpoint) {
     throw new Error("RPC URL is required. Either pass it as a parameter or set RPC_URL environment variable");

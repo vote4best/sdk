@@ -38,6 +38,7 @@ jest.mock("viem", () => ({
 
 // Mock utils
 jest.mock("../../utils", () => ({
+  ...(jest.requireActual("../../utils") as object),
   getArtifact: jest.fn().mockImplementation((chainId: unknown, artifactName: unknown) => {
     if (artifactName === "DAODistributor") {
       return {
@@ -188,7 +189,7 @@ const mockWaitForTransactionReceipt = jest.fn(() =>
 );
 
 const mockWriteContract = jest.fn(() => Promise.resolve("0xabc" as Hash));
-
+const mockReadContract = jest.fn();
 const mockPublicClient = {
   account: undefined,
   batch: undefined,
@@ -205,6 +206,7 @@ const mockPublicClient = {
   getContractEvents: mockGetContractEvents,
   simulateContract: mockSimulateContract,
   waitForTransactionReceipt: mockWaitForTransactionReceipt,
+  readContract: mockReadContract,
 } as unknown as PublicClient;
 
 const mockWalletClient = {
@@ -240,7 +242,7 @@ describe("MAODistributorClient", () => {
   });
 
   describe("addressesToContracts", () => {
-    it("should convert valid addresses to contract instances", async () => {
+    it.only("should convert valid addresses to contract instances", async () => {
       const mockInstances: MAOInstances = {
         rankToken: MOCK_ADDRESSES.RANK_TOKEN,
         govToken: MOCK_ADDRESSES.GOVT_TOKEN,

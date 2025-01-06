@@ -59,7 +59,7 @@ describe("DistributorClient", () => {
       ];
       const resolved: GetContractEventsReturnType<typeof DistributorAbi, "Instantiated"> = [];
       resolved.push({
-        args: { instances: mockInstances[0] },
+        args: { instances: mockInstances[0], version: 1n, newInstanceId: 1n },
         address: "0x1234567890123456789012345678901234567890",
         blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
         blockNumber: BigInt(1),
@@ -72,7 +72,7 @@ describe("DistributorClient", () => {
         topics: ["0x0", "0x1", "0x2", "0x3"],
       });
       resolved.push({
-        args: { instances: mockInstances[1] },
+        args: { instances: mockInstances[1], version: 1n, newInstanceId: 2n },
         address: "0x1234567890123456789012345678901234567890",
         blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
         blockNumber: BigInt(1),
@@ -95,7 +95,10 @@ describe("DistributorClient", () => {
       (getContract as jest.Mock).mockReturnValue(mockContract);
 
       const result = await distributor.getInstances("0x123");
-      expect(result).toEqual(mockInstances);
+      expect(result).toEqual([
+        { addresses: mockInstances[0], version: 1n, newInstanceId: 1n },
+        { addresses: mockInstances[1], version: 1n, newInstanceId: 2n },
+      ]);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
         abi: DistributorAbi,
@@ -112,14 +115,14 @@ describe("DistributorClient", () => {
 
   describe("getInstance", () => {
     test("should return instance for a distribution ID and instance ID", async () => {
-      const mockInstances: Address[] = ["0x1234", "0x5678"];
+      const mockInstance: Address[] = ["0x1234", "0x5678"];
       const mockContract = {
         getEvents: {
           Instantiated: jest
             .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
-                args: { instances: mockInstances },
+                args: { instances: mockInstance, newInstanceId: 1n, version: 1n },
                 address: "0x1234567890123456789012345678901234567890",
                 blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
                 blockNumber: BigInt(1),
@@ -137,7 +140,7 @@ describe("DistributorClient", () => {
       (getContract as jest.Mock).mockReturnValue(mockContract);
 
       const result = await distributor.getInstance("0x123", 1n);
-      expect(result).toEqual(mockInstances);
+      expect(result).toEqual(mockInstance);
       expect(getContract).toHaveBeenCalledWith({
         address: mockDistributorAddress,
         abi: DistributorAbi,
@@ -159,7 +162,7 @@ describe("DistributorClient", () => {
             .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
-                args: { instances: ["0x1234"] },
+                args: { instances: ["0x1234"], version: 1n, newInstanceId: 1n },
                 address: "0x1234567890123456789012345678901234567890",
                 blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
                 blockNumber: BigInt(1),
@@ -172,7 +175,7 @@ describe("DistributorClient", () => {
                 topics: ["0x0", "0x1", "0x2", "0x3"],
               },
               {
-                args: { instances: ["0x5678"] },
+                args: { instances: ["0x5678"], version: 1n, newInstanceId: 1n },
                 address: "0x1234567890123456789012345678901234567890",
                 blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
                 blockNumber: BigInt(1),
@@ -219,7 +222,7 @@ describe("DistributorClient", () => {
             .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
-                args: { instances: mockInstances[0] },
+                args: { instances: mockInstances[0], version: 1n, newInstanceId: 1n },
                 address: "0x1234567890123456789012345678901234567890",
                 blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
                 blockNumber: BigInt(1),
@@ -255,7 +258,7 @@ describe("DistributorClient", () => {
             .fn<() => Promise<GetContractEventsReturnType<typeof DistributorAbi, "Instantiated">>>()
             .mockResolvedValue([
               {
-                args: { instances: mockInstances },
+                args: { instances: mockInstances, version: 1n, newInstanceId: 1n },
                 address: "0x1234567890123456789012345678901234567890",
                 blockHash: "0x1234567890123456789012345678901234567890123456789012345678901234",
                 blockNumber: BigInt(1),

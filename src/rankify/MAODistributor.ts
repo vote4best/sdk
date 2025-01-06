@@ -170,9 +170,8 @@ export class MAODistributorClient extends DistributorClient {
     return instances;
   }
 
-  parseInstantiated = parseInstantiated;
   parseToContracts(instances: readonly Address[]) {
-    return this.addressesToContracts(this.parseInstantiated(instances as string[]));
+    return this.addressesToContracts(parseInstantiated(instances as string[]));
   }
 
   async getDistributions(): Promise<readonly `0x${string}`[]> {
@@ -360,7 +359,6 @@ export class MAODistributorClient extends DistributorClient {
         console.error("Transaction receipt:", receipt);
         throw new Error("Multiple Instantiated events found in transaction receipt");
       }
-
       const addresses = parseInstantiated(instantiatedEvent[0].args.instances as string[]);
       return this.addressesToContracts(addresses);
       // eslint-disable-next-line
