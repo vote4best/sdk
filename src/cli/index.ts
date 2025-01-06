@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { createRequire } from "module";
 import { fellowshipsCommand } from "./commands/fellowship";
 import { distributionsCommand } from "./commands/distributions";
 import { instancesCommand } from "./commands/instances";
 
-const require = createRequire(import.meta.url);
 const { version } = require("../../package.json");
 
 const program = new Command()
