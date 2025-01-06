@@ -71,7 +71,7 @@ export const addCommand = new Command("add")
       const nameBytes = formatBytes32String(name);
 
       spinner.start("Adding distribution...");
-
+      if (!walletClient.chain) throw new Error("Chain not found");
       const { receipt, distributionAddedEvent } = await maoDistributor.addNamedDistribution(
         walletClient.chain,
         nameBytes,
