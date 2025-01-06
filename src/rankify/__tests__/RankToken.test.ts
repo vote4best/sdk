@@ -63,7 +63,7 @@ describe("RankTokenClient", () => {
         )
       );
 
-      const metadata = await rankToken.getMetadata();
+      const metadata = await rankToken.getMetadata("https://peeramid.infura-ipfs.io/ipfs/");
 
       expect(mockFetch).toHaveBeenCalledWith("https://peeramid.infura-ipfs.io/ipfs/test-hash");
       expect(metadata).toEqual(validMetadata);
@@ -83,7 +83,7 @@ describe("RankTokenClient", () => {
         )
       );
 
-      const metadata = await rankToken.getMetadata();
+      const metadata = await rankToken.getMetadata("https://peeramid.infura-ipfs.io/ipfs/");
 
       expect(mockFetch).toHaveBeenCalledWith("https://arweave.net/test-hash");
       expect(metadata).toEqual(validMetadata);
@@ -108,7 +108,9 @@ describe("RankTokenClient", () => {
         )
       );
 
-      await expect(rankToken.getMetadata()).rejects.toThrow("Invalid metadata format");
+      await expect(rankToken.getMetadata("https://peeramid.infura-ipfs.io/ipfs/")).rejects.toThrow(
+        "Invalid metadata format"
+      );
     });
 
     it("should throw error for non-JSON response", async () => {
@@ -125,7 +127,7 @@ describe("RankTokenClient", () => {
         )
       );
 
-      await expect(rankToken.getMetadata()).rejects.toThrow();
+      await expect(rankToken.getMetadata("https://peeramid.infura-ipfs.io/ipfs/")).rejects.toThrow();
     });
 
     it("should throw error for HTTP error", async () => {
@@ -141,7 +143,9 @@ describe("RankTokenClient", () => {
         )
       );
 
-      await expect(rankToken.getMetadata()).rejects.toThrow("HTTP error! status: 404");
+      await expect(rankToken.getMetadata("https://peeramid.infura-ipfs.io/ipfs/")).rejects.toThrow(
+        "HTTP error! status: 404"
+      );
     });
 
     it("should validate complex metadata with all optional fields", async () => {
@@ -184,7 +188,7 @@ describe("RankTokenClient", () => {
         )
       );
 
-      const metadata = await rankToken.getMetadata();
+      const metadata = await rankToken.getMetadata("https://peeramid.infura-ipfs.io/ipfs/");
       expect(metadata).toEqual(complexMetadata);
     });
   });
