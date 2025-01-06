@@ -14,5 +14,3 @@ export interface MAOInstances {
   /** Address of the rank token contract */
   rankToken: string;
 }
-
-
