@@ -80,7 +80,7 @@ describe("Multipass", () => {
 
       expect(result).toBe("0xsignedMessage");
       expect(mockWalletClient.signTypedData).toHaveBeenCalledWith({
-        account: mockWalletClient.account.address,
+        account: mockWalletClient.account,
         domain: {
           name: "TestMultipass",
           version: "1.0.0",
