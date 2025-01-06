@@ -73,7 +73,7 @@ export default class Multipass extends MultipassBase {
     } as const;
 
     return this.walletClient.signTypedData({
-      account: this.walletClient.account.address,
+      account: this.walletClient.account,
       domain: domain,
       types,
       primaryType: "registerName",
