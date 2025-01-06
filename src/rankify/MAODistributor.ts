@@ -24,7 +24,6 @@ import {
   parseEventLogs,
   Address,
   keccak256,
-  toBytes,
   Hex,
   erc20Abi,
   maxUint256,
