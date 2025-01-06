@@ -1,11 +1,11 @@
 import { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
-import { MAODistributorClient } from "../../rankify/MAODistributor";
-import { createPublic } from "../client";
-import { parseInstantiated } from "../../utils";
+import { MAODistributorClient } from "../../../rankify/MAODistributor";
+import { createPublic } from "../../client";
+import { parseInstantiated } from "../../../utils";
 
-export const listInstancesCommand = new Command("list-instances")
+export const listCommand = new Command("list")
   .description("List all registered instances")
   .option("-r, --rpc <url>", "RPC endpoint URL. If not provided, RPC_URL environment variable will be used")
   .action(async (options) => {

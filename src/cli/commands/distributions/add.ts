@@ -1,10 +1,10 @@
 import { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
-import { MAODistributorClient } from "../../rankify/MAODistributor";
-import { createPublic, createWallet } from "../client";
+import { MAODistributorClient } from "../../../rankify/MAODistributor";
+import { createPublic, createWallet } from "../../client";
 import inquirer from "inquirer";
-import { getArtifact } from "../../utils";
+import { getArtifact } from "../../../utils";
 
 // Helper to pad string to 32 bytes, similar to ethers.utils.formatBytes32String
 function formatBytes32String(text: string): `0x${string}` {
@@ -14,16 +14,9 @@ function formatBytes32String(text: string): `0x${string}` {
   return `0x${paddedBuffer.toString("hex")}` as `0x${string}`;
 }
 
-export const addDistributionCommand = new Command("add-distribution")
-  .description("Add a new distribution to the DAO Distributor")
+export const addCommand = new Command("add")
+  .description("Add a new distribution")
   .option("-r, --rpc <url>", "RPC endpoint URL. If not provided, RPC_URL environment variable will be used")
-  .option(
-    "-k, --key <privateKey>",
-    "Private key for signing transactions. If not provided, PRIVATE_KEY environment variable will be used"
-  )
-  .option("-n, --name <name>", "Distribution name")
-  .option("-a, --address <address>", "Distribution address")
-  .option("-i, --initializer <address>", "Initializer address (optional)")
   .action(async (options) => {
     const spinner = ora("Initializing clients...").start();
 

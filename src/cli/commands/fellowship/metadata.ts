@@ -2,10 +2,10 @@ import { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
 import { Address } from "viem";
-import RankTokenClient from "../../rankify/RankToken";
-import { createPublic } from "../client";
+import RankTokenClient from "../../../rankify/RankToken";
+import { createPublic } from "../../client";
 
-export const getMetadataCommand = new Command("get-metadata")
+export const getMetadataCommand = new Command("metadata")
   .description("Get metadata for a RankToken")
   .argument("<address>", "The RankToken contract address")
   .option("-r, --rpc <url>", "RPC endpoint URL. If not provided, RPC_URL environment variable will be used")

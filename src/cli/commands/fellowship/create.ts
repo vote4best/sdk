@@ -3,11 +3,11 @@ import chalk from "chalk";
 import inquirer from "inquirer";
 import ora from "ora";
 import { Chain } from "viem";
-import { MAODistributorClient } from "../../rankify/MAODistributor";
-import { createPublic, createWallet } from "../client";
-import { chainToPath } from "../../utils/chainMapping";
+import { MAODistributorClient } from "../../../rankify/MAODistributor";
+import { createPublic, createWallet } from "../../client";
+import { chainToPath } from "../../../utils/chainMapping";
 
-export const createFellowshipCommand = new Command("create-fellowship")
+export const createFellowshipCommand = new Command("create")
   .description("Create a new Fellowship")
   .option("-r, --rpc <url>", "RPC endpoint URL. If not provided, RPC_URL environment variable will be used")
   .option(
@@ -117,7 +117,7 @@ export const createFellowshipCommand = new Command("create-fellowship")
           },
         },
       };
-      
+
       const contracts = await maoDistributor.instantiate(args, options.distName, chain);
 
       spinner.succeed("Fellowship created successfully!");
