@@ -3,7 +3,6 @@
   "description": "Peeramid Labs js client library",
   "version": "2.1.2",
   "private": "true",
-  "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "publishConfig": {
@@ -21,7 +20,11 @@
       "default": "./src/index.ts"
     }
   },
+  "bin": {
+    "peeramid": "./dist/cli/index.js"
+  },
   "scripts": {
+    "cli": "tsx src/cli/index.ts",
     "lint:fix": "prettier --write 'src/**/*.{ts,js}' && eslint --fix .",
     "lint": "eslint .",
     "generate-chain-mapping": "node ./scripts/generateChainMapping.mjs",
@@ -44,8 +47,12 @@
   "dependencies": {
     "@peeramid-labs/eds": "^2.2.0",
     "@peeramid-labs/multipass": "^0.3.2",
+    "chalk": "^5.4.1",
+    "commander": "^13.0.0",
     "crypto-js": "^4.1.1",
+    "inquirer": "^12.3.0",
     "lodash": "^4.17.21",
+    "ora": "^8.1.1",
     "rankify-contracts": "^0.10.1",
     "viem": "^2.21.55"
   },
@@ -67,10 +74,12 @@
     "prettier": "^3.3.3",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0",
+    "tsx": "^4.19.2",
     "typedoc": "^0.25.7",
     "typedoc-plugin-markdown": "^3.17.1",
-    "typedoc-theme-hierarchy": "^4.1.2"
-  }
+    "typedoc-theme-hierarchy": "^4.1.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "type": "commonjs"
 }

@@ -64,17 +64,17 @@ export default class RankTokenClient {
     });
   }
 
-  getMetadata = async (): Promise<FellowshipMetadata> => {
+  getMetadata = async (ipfsGateway: string): Promise<FellowshipMetadata> => {
     try {
       const uri = await this.getRankTokenURI();
 
       // Handle different URI formats
       const processedUri = uri.startsWith("ipfs://")
-        ? uri.replace("ipfs://", "https://peeramid.infura-ipfs.io/ipfs/")
+        ? uri.replace("ipfs://", `${ipfsGateway}`)
         : uri.startsWith("ar://")
           ? `https://arweave.net/${uri.slice(5)}`
           : uri;
-
+      console.log("fetching from", processedUri);
       const response = await fetch(processedUri);
 
       if (!response.ok) {
