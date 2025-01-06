@@ -3,6 +3,7 @@
   "description": "Peeramid Labs JavaScript SDK and CLI tools for building your community",
   "version": "2.1.2",
   "private": "true",
+  "type": "module",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "publishConfig": {
