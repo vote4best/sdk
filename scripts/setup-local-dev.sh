@@ -89,8 +89,8 @@ setup_repo() {
 }
 
 # Setup each repository
-setup_repo "$EDS_PATH" "eds"
-setup_repo "$MULTIPASS_PATH" "multipass"
+setup_repo "$EDS_PATH" "eds" &&
+setup_repo "$MULTIPASS_PATH" "multipass" &&
 setup_repo "$RANKIFY_CONTRACTS_PATH" "rankify-contracts"
 
 # Link dependencies in SDK

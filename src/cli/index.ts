@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { fellowshipsCommand } from "./commands/fellowship";
 import { distributionsCommand } from "./commands/distributions";
 import { instancesCommand } from "./commands/instances";
+import { multipassCommand } from "./commands/multipass";
 
 const { version } = require("../../package.json");
 
@@ -16,5 +17,6 @@ const program = new Command()
 program.addCommand(fellowshipsCommand);
 program.addCommand(distributionsCommand);
 program.addCommand(instancesCommand);
+program.addCommand(multipassCommand);
 
 program.parse();

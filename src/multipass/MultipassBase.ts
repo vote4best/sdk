@@ -1,5 +1,18 @@
-import { type Address, type Hex, stringToHex, zeroAddress, isAddress } from "viem";
+import { type Address, type Hex, stringToHex, zeroAddress, isAddress, type PublicClient } from "viem";
 import type { RegisterMessage } from "../types";
+import { MultipassAbi } from "../abis";
+import { getArtifact } from "../utils";
+
+export type Domain = {
+  name: string;
+  registrar: Address;
+  fee: bigint;
+  renewalFee: bigint;
+  registerSize: bigint;
+  isActive: boolean;
+  referrerReward: bigint;
+  referralDiscount: bigint;
+};
 
 /**
  * Structure representing a name query for Multipass
@@ -24,14 +37,18 @@ export type NameQuery = {
 export default class MultipassBase {
   /** Chain ID for the network */
   chainId: number;
+  /** Public client for reading contracts */
+  publicClient: PublicClient;
 
   /**
    * Creates a new MultipassBase instance
    * @param params - Constructor parameters
    * @param params.chainId - ID of the blockchain network
+   * @param params.publicClient - Public client for reading contracts
    */
-  constructor({ chainId }: { chainId: number }) {
+  constructor({ chainId, publicClient }: { chainId: number; publicClient: PublicClient }) {
     this.chainId = chainId;
+    this.publicClient = publicClient;
   }
 
   /**
@@ -216,4 +233,53 @@ export default class MultipassBase {
       targetDomain: stringToHex(targetDomain ?? "", { size: 32 }),
     };
   };
+  protected getContractAddress(): Address {
+    const artifact = getArtifact(this.chainId, "Multipass");
+    return artifact.address as Address;
+  }
+
+  protected getAbi() {
+    return MultipassAbi;
+  }
+
+  /**
+   * Get domain state
+   * @param domainName Domain name to query
+   * @returns Domain state
+   */
+  public async getDomainState(domainName: `0x${string}`): Promise<Domain> {
+    return this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      functionName: "getDomainState",
+      args: [domainName],
+    });
+  }
+
+  /**
+   * Get domain state by ID
+   * @param id Domain ID to query
+   * @returns Domain state
+   */
+  public async getDomainStateById(id: bigint): Promise<Domain> {
+    return this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      functionName: "getDomainStateById",
+      args: [id],
+    });
+  }
+
+  /**
+   * Get contract state
+   * @returns Total number of domains
+   */
+  public async getContractState(): Promise<bigint> {
+    return this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      functionName: "getContractState",
+      args: [],
+    });
+  }
 }
