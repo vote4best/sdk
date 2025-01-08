@@ -54,7 +54,7 @@
     "crypto-js": "^4.1.1",
     "inquirer": "^12.3.0",
     "lodash": "^4.17.21",
-    "ora": "^8.1.1",
+    "ora": "^5.4.1",
     "rankify-contracts": "^0.10.1",
     "viem": "^2.21.55"
   },
