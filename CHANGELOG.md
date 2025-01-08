@@ -1,5 +1,22 @@
 # peeramid-labs/sdk
 
+## 3.0.0
+
+### Major Changes
+
+- [#67](https://github.com/peeramid-labs/sdk/pull/67) [`01cb045d25980f6f0174d0c1bbd9d48902475d2a`](https://github.com/peeramid-labs/sdk/commit/01cb045d25980f6f0174d0c1bbd9d48902475d2a) Thanks [@peersky](https://github.com/peersky)! - Added CLI interface for interacting with Peeramid contracts, providing commands for managing distributions, fellowships, and instances. Enhanced distribution management with named distributions and CodeIndex integration.
+
+  BREAKING CHANGES:
+
+  - Changed DistributorClient.getInstances return type to include version and instance metadata
+  - Modified RankTokenClient.getMetadata to require IPFS gateway parameter
+  - Moved parseInstantiated utility from types to utils package
+  - Updated distributor contract interface to DAODistributor
+
+### Minor Changes
+
+- [#65](https://github.com/peeramid-labs/sdk/pull/65) [`5d1a5676f456b3ebdcc280021a668d2a9d1143fb`](https://github.com/peeramid-labs/sdk/commit/5d1a5676f456b3ebdcc280021a668d2a9d1143fb) Thanks [@peersky](https://github.com/peersky)! - added medatata types for fellowship group contracts
+
 ## 2.1.2
 
 ### Patch Changes
