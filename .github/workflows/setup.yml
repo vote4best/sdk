@@ -1,0 +1,71 @@
+name: Setup and Deploy Subgraph
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GRAPH_ACCESS_TOKEN: ${{ secrets.GRAPH_ACCESS_TOKEN }}
+  GRAPH_DEPLOY_KEY: ${{ secrets.GRAPH_DEPLOY_KEY }}
+
+jobs:
+  setup-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install root dependencies
+        run: pnpm install
+
+      - name: Install subgraph dependencies
+        working-directory: ./subgraph
+        run: pnpm install
+
+      - name: Generate Types
+        working-directory: ./subgraph
+        run: pnpm codegen
+
+      - name: Build Subgraph
+        working-directory: ./subgraph
+        run: pnpm build
+
+      - name: Deploy Subgraph (Production)
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./subgraph
+        run: |
+          pnpm deploy:prod --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}
+
+      - name: Deploy Subgraph (Development)
+        if: github.ref != 'refs/heads/main'
+        working-directory: ./subgraph
+        run: |
+          pnpm deploy:dev --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}

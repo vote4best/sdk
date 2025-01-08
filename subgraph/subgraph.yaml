@@ -1,0 +1,144 @@
+specVersion: 0.0.5
+description: Peeramid SDK Subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Rankify
+    network: anvil
+    source:
+      abi: Rankify
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+        - Approval
+        - OwnershipTransferred
+      abis:
+        - name: Rankify
+          file: ./src/abis/Rankify.ts
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/mappings/rankify.ts
+
+  - kind: ethereum/contract
+    name: Multipass
+    network: anvil
+    source:
+      abi: Multipass
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Record
+        - Domain
+        - Initialized
+        - DomainActivated
+        - DomainDeactivated
+        - DomainFeeChanged
+        - InitializedDomain
+        - ReferralProgramChanged
+      abis:
+        - name: Multipass
+          file: ./src/abis/Multipass.ts
+      eventHandlers:
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: DomainActivated(indexed bytes32)
+          handler: handleDomainActivated
+        - event: DomainDeactivated(indexed bytes32)
+          handler: handleDomainDeactivated
+        - event: DomainFeeChanged(indexed bytes32,indexed uint256)
+          handler: handleDomainFeeChanged
+        - event: InitializedDomain(indexed address,indexed uint256,indexed bytes32,uint256,uint256,uint256)
+          handler: handleInitializedDomain
+        - event: ReferralProgramChanged(indexed bytes32,uint256,uint256)
+          handler: handleReferralProgramChanged
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/mappings/multipass.ts
+
+  - kind: ethereum/contract
+    name: SimpleAccessManager
+    network: anvil
+    source:
+      abi: SimpleAccessManager
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AccessControl
+        - Initialized
+      abis:
+        - name: SimpleAccessManager
+          file: ./src/abis/SimpleAccessManager.ts
+      eventHandlers:
+        - event: Initialized(uint64)
+          handler: handleInitialized
+      file: ./src/mappings/simple-access-manager.ts
+
+  - kind: ethereum/contract
+    name: DAODistributor
+    network: anvil
+    source:
+      abi: DAODistributor
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Distribution
+        - DefaultAdminChange
+        - RoleGranted
+        - RoleRevoked
+        - DistributionCreated
+        - DistributionUpdated
+      abis:
+        - name: DAODistributor
+          file: ./src/abis/DAODistributor.ts
+      eventHandlers:
+        - event: DefaultAdminDelayChangeCanceled()
+          handler: handleDefaultAdminDelayChangeCanceled
+        - event: DefaultAdminDelayChangeScheduled(uint48,uint48)
+          handler: handleDefaultAdminDelayChangeScheduled
+        - event: DefaultAdminTransferCanceled()
+          handler: handleDefaultAdminTransferCanceled
+        - event: DefaultAdminTransferScheduled(indexed address,uint48)
+          handler: handleDefaultAdminTransferScheduled
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+      file: ./src/mappings/dao-distributor.ts
+
+  - kind: ethereum/contract
+    name: CodeIndex
+    network: anvil
+    source:
+      abi: CodeIndex
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - CodeIndexEntry
+      abis:
+        - name: CodeIndex
+          file: ./src/abis/CodeIndex.ts
+      file: ./src/mappings/code-index.ts

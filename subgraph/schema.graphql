@@ -1,0 +1,164 @@
+type Transfer @entity {
+  id: ID!
+  from: Bytes!
+  to: Bytes!
+  value: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Approval @entity {
+  id: ID!
+  owner: Bytes!
+  spender: Bytes!
+  value: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity {
+  id: ID!
+  previousOwner: Bytes!
+  newOwner: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Record @entity {
+  id: ID!
+  wallet: Bytes!
+  name: Bytes!
+  recordId: Bytes!
+  nonce: BigInt!
+  domainName: Bytes!
+  validUntil: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Domain @entity {
+  id: ID!
+  name: Bytes!
+  isActive: Boolean!
+  fee: BigInt
+  renewalFee: BigInt
+  referrerReward: BigInt
+  referralDiscount: BigInt
+  records: [Record!]! @derivedFrom(field: "domainName")
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type DomainActivated @entity {
+  id: ID!
+  domainName: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type DomainDeactivated @entity {
+  id: ID!
+  domainName: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type DomainFeeChanged @entity {
+  id: ID!
+  domainName: Bytes!
+  newFee: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type InitializedDomain @entity {
+  id: ID!
+  registrar: Bytes!
+  fee: BigInt!
+  domainName: Bytes!
+  renewalFee: BigInt!
+  referrerReward: BigInt!
+  referralDiscount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type ReferralProgramChanged @entity {
+  id: ID!
+  domainName: Bytes!
+  reward: BigInt!
+  discount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type DefaultAdminChange @entity {
+  id: ID!
+  newDelay: BigInt
+  effectSchedule: BigInt
+  newAdmin: Bytes
+  acceptSchedule: BigInt
+  isCanceled: Boolean!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type RoleGranted @entity {
+  id: ID!
+  role: Bytes!
+  account: Bytes!
+  sender: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type RoleRevoked @entity {
+  id: ID!
+  role: Bytes!
+  account: Bytes!
+  sender: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type RoleAdminChanged @entity {
+  id: ID!
+  role: Bytes!
+  previousAdminRole: Bytes!
+  newAdminRole: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Distribution @entity {
+  id: ID!
+  distributor: Bytes!
+  recipient: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type Initialized @entity {
+  id: ID!
+  version: BigInt!
+  contract: String!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
