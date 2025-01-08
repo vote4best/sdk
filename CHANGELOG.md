@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 3.0.1
+
+### Patch Changes
+
+- [`fc29b359224ef92dde2b0db37e65a4476e5ab5b3`](https://github.com/peeramid-labs/sdk/commit/fc29b359224ef92dde2b0db37e65a4476e5ab5b3) Thanks [@peersky](https://github.com/peersky)! - fixed esm errors on cli when using on clean installations that have no dist build artifact
+
 ## 3.0.0
 
 ### Major Changes
