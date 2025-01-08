@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "./dist/cli",
+    "rootDir": "./src",
+    "declaration": false,
+    "sourceMap": true,
+    "declarationMap": false,
+    "target": "ESNext",
+    "noEmitOnError": true,
+    "moduleResolution": "node",
+    "noEmit": false,
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/__tests__/*"]
+}

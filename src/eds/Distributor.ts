@@ -19,7 +19,10 @@ export class DistributorClient {
     return contract.read.getDistributions();
   }
 
-  async getInstances(distributorsId: Hex, fromBlock: bigint = 1n): Promise<Address[][]> {
+  async getInstances(
+    distributorsId: Hex,
+    fromBlock: bigint = 1n
+  ): Promise<{ newInstanceId: bigint; version: bigint; addresses: Address[] }[]> {
     const contract = getContract({
       address: this.address,
       abi: DistributorAbi,
@@ -33,7 +36,19 @@ export class DistributorClient {
       { toBlock: "latest", fromBlock }
     );
 
-    return events.map((log) => log.args.instances as Address[]);
+    return events.map((log) => {
+      if (!log.args.version)
+        throw new Error(`No version found for distributor ${distributorsId} and instance ${log.args.newInstanceId}`);
+      if (!log.args.instances)
+        throw new Error(`No instances found for distributor ${distributorsId} and instance ${log.args.newInstanceId}`);
+      if (!log.args.newInstanceId)
+        throw new Error(`No instanceId found for distributor ${distributorsId} and instance ${log.args.newInstanceId}`);
+      return {
+        newInstanceId: log.args.newInstanceId,
+        addresses: log.args.instances as Address[],
+        version: log.args.version,
+      };
+    });
   }
 
   async getInstance(distributorsId: Hex, instanceId: bigint): Promise<Address[]> {
@@ -63,7 +78,7 @@ export class DistributorClient {
 
   async getNamedDistributionInstances({ namedDistribution }: { namedDistribution: string }): Promise<Address[][]> {
     const id = stringToHex(namedDistribution, { size: 32 });
-    return this.getInstances(id);
+    return this.getInstances(id).then((instances) => instances.map((i) => i.addresses));
   }
 
   async getNamedDistributionInstance(namedDistribution: string, instanceId: bigint): Promise<Address[]> {

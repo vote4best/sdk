@@ -16,6 +16,7 @@ import simpleAccessManagerAbi from "../abis/SimpleAccessManager";
 import DAODistributorabi from "../abis/DAODistributor";
 
 import { getChainPath } from "./chainMapping";
+import { CodeIndexAbi } from "../abis";
 
 export type SupportedChains = "anvil" | "localhost";
 
@@ -24,13 +25,14 @@ export const chainIdMapping: { [key in SupportedChains]: string } = {
   localhost: "42161",
 };
 
-export type ArtifactTypes = "Rankify" | "Multipass" | "SimpleAccessManager" | "DAODistributor";
+export type ArtifactTypes = "Rankify" | "Multipass" | "SimpleAccessManager" | "DAODistributor" | "CodeIndex";
 
 export type ArtifactAbi = {
   Rankify: typeof rankifyAbi;
   Multipass: typeof multipassAbi;
   SimpleAccessManager: typeof simpleAccessManagerAbi;
   DAODistributor: typeof DAODistributorabi;
+  CodeIndex: typeof CodeIndexAbi;
 };
 
 /**
@@ -60,7 +62,9 @@ export const getArtifact = (
   const artifact = (
     artifactName === "Multipass"
       ? require(`@peeramid-labs/multipass/deployments/${chainPath}/${artifactName}.json`)
-      : require(`rankify-contracts/deployments/${chainPath}/${artifactName}.json`)
+      : artifactName === "CodeIndex"
+        ? require(`@peeramid-labs/eds/deployments/${chainPath}/${artifactName}.json`)
+        : require(`rankify-contracts/deployments/${chainPath}/${artifactName}.json`)
   ) as {
     abi: AbiItem[];
     address: Address;

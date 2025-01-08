@@ -4,8 +4,8 @@
  */
 
 import { DistributorClient } from "../eds/Distributor";
-import { getArtifact } from "../utils";
-import { MAOInstances, parseInstantiated } from "../types/contracts";
+import { getArtifact, parseInstantiated } from "../utils";
+import { MAOInstances } from "../types/contracts";
 import instanceAbi from "../abis/RankifyDiamondInstance";
 import rankTokenAbi from "../abis/RankToken";
 import govtTokenAbi from "../abis/DistributableGovernanceERC20";
@@ -23,9 +23,14 @@ import {
   WalletClient,
   parseEventLogs,
   Address,
+  keccak256,
+  Hex,
+  erc20Abi,
+  maxUint256,
 } from "viem";
 import MaoDistributionAbi from "../abis/MAODistribution";
-import distributorAbi from "../abis/IDistributor";
+import distributorAbi from "../abis/DAODistributor";
+import { CodeIndexAbi } from "../abis";
 
 /**
  * Structure defining token-related arguments
@@ -165,9 +170,74 @@ export class MAODistributorClient extends DistributorClient {
     return instances;
   }
 
-  parseInstantiated = parseInstantiated;
   parseToContracts(instances: readonly Address[]) {
-    return this.addressesToContracts(this.parseInstantiated(instances as string[]));
+    return this.addressesToContracts(parseInstantiated(instances as string[]));
+  }
+
+  async getDistributions(): Promise<readonly `0x${string}`[]> {
+    return this.publicClient.readContract({
+      abi: distributorAbi,
+      functionName: "getDistributions",
+      address: this.address,
+    });
+  }
+
+  async addNamedDistribution(
+    chain: Chain,
+    name: `0x${string}`,
+    address: `0x${string}`,
+    initializer: `0x${string}` = "0x0000000000000000000000000000000000000000"
+  ) {
+    if (!this.walletClient) {
+      throw new Error("Wallet client is required for this operation");
+    }
+
+    const code = await this.publicClient.getCode({ address });
+    if (!code) throw new Error(`Code not found on ${address} address`);
+    const hashCode = keccak256(code);
+    const distrAddress = await this.publicClient.readContract({
+      abi: CodeIndexAbi,
+      address: getArtifact(chain.id, "CodeIndex").address,
+      functionName: "get",
+      args: [hashCode],
+    });
+    const [account] = await this.walletClient.getAddresses();
+
+    if (distrAddress == "0x0000000000000000000000000000000000000000") {
+      const { request } = await this.publicClient.simulateContract({
+        abi: CodeIndexAbi,
+        address: getArtifact(chain.id, "CodeIndex").address,
+        functionName: "register",
+        args: [address],
+        account,
+      });
+
+      await this.walletClient
+        .writeContract(request)
+        .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
+    }
+
+    const { request } = await this.publicClient.simulateContract({
+      abi: distributorAbi,
+      address: this.address,
+      functionName: "addNamedDistribution",
+      args: [name, hashCode, initializer],
+      account,
+      chain,
+    });
+
+    const receipt = await this.walletClient
+      .writeContract(request)
+      .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
+
+    const distributionAddedEvent = parseEventLogs({
+      abi: distributorAbi,
+      logs: receipt.logs,
+      eventName: "DistributionAdded",
+      // strict: false,
+    });
+
+    return { receipt, distributionAddedEvent: distributionAddedEvent[0] };
   }
 
   async getMAOInstance(
@@ -199,9 +269,55 @@ export class MAODistributorClient extends DistributorClient {
     return this.addressesToContracts(parseInstantiated(instances as string[]));
   }
 
+  async getInstantiatePrice(distributorsId: Hex): Promise<bigint> {
+    return this.publicClient.readContract({
+      abi: distributorAbi,
+      functionName: "instantiationCosts",
+      address: this.address,
+      args: [distributorsId],
+    });
+  }
+
+  async setInstantiationAllowance(amount?: bigint) {
+    if (!this.walletClient) throw new Error("walletClient is required, use constructor with walletClient");
+    if (!this.walletClient.account?.address) throw new Error("No account address found");
+    const paymentToken = await this.publicClient.readContract({
+      abi: distributorAbi,
+      functionName: "paymentToken",
+      address: this.address,
+    });
+
+    await this.walletClient.writeContract({
+      chain: this.walletClient.chain,
+      account: this.walletClient.account,
+      abi: erc20Abi,
+      functionName: "approve",
+      address: paymentToken,
+      args: [this.address, amount ? amount : maxUint256],
+    });
+  }
+
+  async needsAllowance(distributorsId: Hex) {
+    if (!this.walletClient) throw new Error("walletClient is required, use constructor with walletClient");
+    if (!this.walletClient.account?.address) throw new Error("No account address found");
+    const paymentToken = await this.publicClient.readContract({
+      abi: distributorAbi,
+      functionName: "paymentToken",
+      address: this.address,
+    });
+    const allowance = await this.publicClient.readContract({
+      abi: erc20Abi,
+      functionName: "allowance",
+      address: paymentToken,
+      args: [this.walletClient.account?.address, this.address],
+    });
+    return allowance < (await this.getInstantiatePrice(distributorsId));
+  }
+
   /**
    * Create a new MAODistribution instance
    * @param args Distribution arguments (encoded as bytes)
+   * @param name Distributor name (defaults to "MAO Distribution")
    * @returns Array of created contract addresses
    */
   async instantiate(
@@ -215,36 +331,46 @@ export class MAODistributorClient extends DistributorClient {
     const encodedParams = encodeAbiParameters(abiItem.inputs, args);
     const encodedName = stringToHex(name, { size: 32 });
     if (!this.walletClient.account?.address) throw new Error("No account address found");
-    const { request } = await this.publicClient.simulateContract({
-      abi: distributorAbi,
-      address: this.address,
-      functionName: "instantiate",
-      args: [encodedName, encodedParams],
-      account: this.walletClient.account?.address,
-      chain: chain,
-    });
+    try {
+      if (await this.needsAllowance(encodedName)) await this.setInstantiationAllowance();
+      const { request } = await this.publicClient.simulateContract({
+        abi: distributorAbi,
+        address: this.address,
+        functionName: "instantiate",
+        args: [encodedName, encodedParams],
+        account: this.walletClient.account,
+        chain: chain,
+      });
+      const receipt = await this.walletClient
+        .writeContract(request)
+        .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
+      const instantiatedEvent = parseEventLogs({
+        abi: distributorAbi,
+        logs: receipt.logs,
+        eventName: "Instantiated",
+        // strict: false,
+      });
 
-    const receipt = await this.walletClient
-      .writeContract(request)
-      .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
-
-    const instantiatedEvent = parseEventLogs({
-      abi: distributorAbi,
-      logs: receipt.logs,
-      eventName: "Instantiated",
-      // strict: false,
-    });
-
-    if (instantiatedEvent.length == 0) {
-      console.error("Transaction receipt:", receipt);
-      throw new Error("Instantiated event not found in transaction receipt");
+      if (instantiatedEvent.length == 0) {
+        console.error("Transaction receipt:", receipt);
+        throw new Error("Instantiated event not found in transaction receipt");
+      }
+      if (instantiatedEvent.length > 1) {
+        console.error("Transaction receipt:", receipt);
+        throw new Error("Multiple Instantiated events found in transaction receipt");
+      }
+      const addresses = parseInstantiated(instantiatedEvent[0].args.instances as string[]);
+      return this.addressesToContracts(addresses);
+      // eslint-disable-next-line
+    } catch (e: any) {
+      if (e?.cause?.signature) {
+        const remoteAttempt = fetch(
+          `https://www.4byte.directory/api/v1/signatures/?hex_signature=${e?.cause?.signature}`
+        );
+        const response = await remoteAttempt;
+        const data = await response.json();
+        throw new Error(`error: ${e?.message} | 4byte: ${JSON.stringify(data.results, null, 2)}`);
+      } else throw e;
     }
-    if (instantiatedEvent.length > 1) {
-      console.error("Transaction receipt:", receipt);
-      throw new Error("Multiple Instantiated events found in transaction receipt");
-    }
-
-    const addresses = parseInstantiated(instantiatedEvent[0].args.instances as string[]);
-    return this.addressesToContracts(addresses);
   }
 }

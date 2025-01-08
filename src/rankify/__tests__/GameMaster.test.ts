@@ -235,6 +235,7 @@ describe("GameMaster", () => {
 
     it("should return -1 if no proposal found", async () => {
       mockReadContract.mockResolvedValueOnce(0n); // getTurn
+      mockGetContractEvents.mockResolvedValueOnce([createMockTurnEndedEvent(1n, 1n, ["proposal1", "proposal2"])]); // TurnEnded events
       const result = await gameMaster.findPlayerOngoingProposalIndex(1n, MOCK_ADDRESSES.PLAYER1);
       expect(result).toBe(-1);
     });
@@ -243,9 +244,9 @@ describe("GameMaster", () => {
   describe("submitVote", () => {
     it("should submit vote for proposals", async () => {
       const vote = [1n, 0n, 2n];
-      mockReadContract.mockResolvedValueOnce(1n); // getTurn for findPlayerOngoingProposalIndex
+      mockReadContract.mockResolvedValueOnce(2n); // getTurn for findPlayerOngoingProposalIndex
       mockGetContractEvents
-        .mockResolvedValueOnce([]) // No previous proposals for findPlayerOngoingProposalIndex
+        .mockResolvedValueOnce([createMockTurnEndedEvent(1n, 1n, ["proposal1", "proposal2"])])
         .mockResolvedValueOnce([]); // No proposals for submitVote
 
       const result = await gameMaster.submitVote(1n, vote, MOCK_ADDRESSES.PLAYER1);

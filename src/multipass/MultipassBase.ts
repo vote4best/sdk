@@ -1,5 +1,18 @@
-import { type Address, type Hex, stringToHex, zeroAddress, isAddress } from "viem";
+import { type Address, type Hex, stringToHex, zeroAddress, isAddress, type PublicClient } from "viem";
 import type { RegisterMessage } from "../types";
+import { MultipassAbi } from "../abis";
+import { getArtifact } from "../utils";
+
+export type Domain = {
+  name: string;
+  registrar: Address;
+  fee: bigint;
+  renewalFee: bigint;
+  registerSize: bigint;
+  isActive: boolean;
+  referrerReward: bigint;
+  referralDiscount: bigint;
+};
 
 /**
  * Structure representing a name query for Multipass
@@ -18,20 +31,31 @@ export type NameQuery = {
   targetDomain: Hex;
 };
 
+interface CustomRecord {
+  name: string;
+  id: string;
+  domainName: string;
+  // Add other fields as needed
+}
+
 /**
  * Base class for Multipass functionality
  */
 export default class MultipassBase {
   /** Chain ID for the network */
   chainId: number;
+  /** Public client for reading contracts */
+  publicClient: PublicClient;
 
   /**
    * Creates a new MultipassBase instance
    * @param params - Constructor parameters
    * @param params.chainId - ID of the blockchain network
+   * @param params.publicClient - Public client for reading contracts
    */
-  constructor({ chainId }: { chainId: number }) {
+  constructor({ chainId, publicClient }: { chainId: number; publicClient: PublicClient }) {
     this.chainId = chainId;
+    this.publicClient = publicClient;
   }
 
   /**
@@ -216,4 +240,187 @@ export default class MultipassBase {
       targetDomain: stringToHex(targetDomain ?? "", { size: 32 }),
     };
   };
+  public getContractAddress(): Address {
+    const artifact = getArtifact(this.chainId, "Multipass");
+    return artifact.address as Address;
+  }
+
+  protected getAbi() {
+    return MultipassAbi;
+  }
+
+  /**
+   * Get domain state
+   * @param domainName Domain name to query
+   * @returns Domain state
+   */
+  public async getDomainState(domainName: `0x${string}`): Promise<Domain> {
+    return this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      functionName: "getDomainState",
+      args: [domainName],
+    });
+  }
+
+  /**
+   * Get domain state by ID
+   * @param id Domain ID to query
+   * @returns Domain state
+   */
+  public async getDomainStateById(id: bigint): Promise<Domain> {
+    return this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      functionName: "getDomainStateById",
+      args: [id],
+    });
+  }
+
+  /**
+   * Get contract state
+   * @returns Total number of domains
+   */
+  public async getContractState(): Promise<bigint> {
+    return this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      functionName: "getContractState",
+      args: [],
+    });
+  }
+
+  /**
+   * List all domains with their active status
+   * @param onlyActive If true, only return active domains
+   * @returns Array of domains with their states
+   */
+  public async listDomains(onlyActive?: boolean): Promise<Domain[]> {
+    const initializedFilter = await this.publicClient.getContractEvents({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      fromBlock: 0n,
+      eventName: "InitializedDomain",
+    });
+
+    const activatedFilter = await this.publicClient.getContractEvents({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      fromBlock: 0n,
+      eventName: "DomainActivated",
+    });
+
+    const deactivatedFilter = await this.publicClient.getContractEvents({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      fromBlock: 0n,
+      eventName: "DomainDeactivated",
+    });
+
+    const domains = new Map<string, Domain>();
+
+    // Process initialized domains
+    for (const event of initializedFilter) {
+      const { args } = event;
+      if (!args) continue;
+
+      const domainState = await this.getDomainState(args.domainName as `0x${string}`);
+      domains.set(args.domainName as string, domainState);
+    }
+
+    // Update active status
+    for (const event of activatedFilter) {
+      const { args } = event;
+      if (!args || !domains.has(args.domainName as string)) continue;
+
+      const domain = domains.get(args.domainName as string)!;
+      domain.isActive = true;
+      domains.set(args.domainName as string, domain);
+    }
+
+    // Update deactive status
+    for (const event of deactivatedFilter) {
+      const { args } = event;
+      if (!args || !domains.has(args.domainName as string)) continue;
+
+      const domain = domains.get(args.domainName as string)!;
+      domain.isActive = false;
+      domains.set(args.domainName as string, domain);
+    }
+
+    let result = Array.from(domains.values());
+    if (onlyActive) {
+      result = result.filter((domain) => domain.isActive);
+    }
+
+    return result;
+  }
+
+  /**
+   * List all records with their states
+   * @param onlyActive If true, only return active records
+   * @returns Array of records with their states
+   */
+  public async listRecords(onlyActive?: boolean): Promise<Array<{ record: CustomRecord; isActive: boolean }>> {
+    const registeredFilter = await this.publicClient.getContractEvents({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      fromBlock: 0n,
+      eventName: "Registered",
+    });
+
+    const renewedFilter = await this.publicClient.getContractEvents({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      fromBlock: 0n,
+      eventName: "Renewed",
+    });
+
+    const deletedFilter = await this.publicClient.getContractEvents({
+      address: this.getContractAddress(),
+      abi: MultipassAbi,
+      fromBlock: 0n,
+      eventName: "nameDeleted",
+    });
+
+    const records = new Map<string, { record: CustomRecord; isActive: boolean }>();
+
+    // Process registered records
+    for (const event of registeredFilter) {
+      const { args } = event;
+      if (!args || !args.NewRecord) continue;
+
+      const key = `${args.NewRecord.name}-${args.NewRecord.id}-${args.NewRecord.domainName}`;
+      records.set(key, { record: args.NewRecord, isActive: true });
+    }
+
+    // Update renewed records
+    for (const event of renewedFilter) {
+      const { args } = event;
+      if (!args || !args.newRecord) continue;
+
+      const key = `${args.newRecord.name}-${args.newRecord.id}-${args.newRecord.domainName}`;
+      records.set(key, { record: args.newRecord, isActive: true });
+    }
+
+    // Update deleted records
+    for (const event of deletedFilter) {
+      const { args } = event;
+      if (!args) continue;
+
+      const key = `${args.name}-${args.id}-${args.domainName}`;
+      if (records.has(key)) {
+        const record = records.get(key)!;
+        record.isActive = false;
+        records.set(key, record);
+      }
+    }
+
+    let result = Array.from(records.values());
+    if (onlyActive) {
+      result = result.filter((record) => record.isActive);
+    }
+
+    return result;
+  }
 }
