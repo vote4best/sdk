@@ -289,7 +289,7 @@ export class MAODistributorClient extends DistributorClient {
 
     await this.walletClient.writeContract({
       chain: this.walletClient.chain,
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
       abi: erc20Abi,
       functionName: "approve",
       address: paymentToken,
@@ -338,7 +338,7 @@ export class MAODistributorClient extends DistributorClient {
         address: this.address,
         functionName: "instantiate",
         args: [encodedName, encodedParams],
-        account: this.walletClient.account?.address,
+        account: this.walletClient.account,
         chain: chain,
       });
       const receipt = await this.walletClient

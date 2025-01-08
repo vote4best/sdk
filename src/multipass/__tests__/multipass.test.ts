@@ -1,6 +1,6 @@
 import { describe, expect, test, jest } from "@jest/globals";
 import Multipass from "../Registrar";
-import { createPublicClient, createWalletClient, Hex } from "viem";
+import { createPublicClient, createWalletClient, Hex, type PublicClient, type WalletClient } from "viem";
 import { Address } from "viem";
 import { RegisterMessage } from "../../types";
 
@@ -27,21 +27,24 @@ describe("Multipass", () => {
   const mockChainId = 1;
   const mockPublicClient = {
     request: jest.fn(),
-  };
+    readContract: jest.fn(),
+  } as unknown as PublicClient;
+
+  const mockSignTypedData = jest.fn<() => Promise<Hex>>();
   const mockWalletClient = {
     account: {
       address: "0x1234567890123456789012345678901234567890" as Address,
     },
-    signTypedData: jest.fn<() => Promise<Hex>>(),
-  };
+    signTypedData: mockSignTypedData,
+  } as unknown as WalletClient;
 
   (createPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
   (createWalletClient as jest.Mock).mockReturnValue(mockWalletClient);
 
   const multipass = new Multipass({
     chainId: mockChainId,
-    // eslint-disable-next-line
-    walletClient: mockWalletClient as any,
+    publicClient: mockPublicClient,
+    walletClient: mockWalletClient,
   });
 
   beforeEach(() => {
@@ -74,12 +77,12 @@ describe("Multipass", () => {
       };
       const verifierAddress = "0x9876543210987654321098765432109876543210" as Address;
 
-      mockWalletClient.signTypedData.mockResolvedValue("0xsignedMessage" as `0x${string}`);
+      mockSignTypedData.mockResolvedValue("0xsignedMessage" as `0x${string}`);
 
       const result = await multipass.signRegistrarMessage(message, verifierAddress);
 
       expect(result).toBe("0xsignedMessage");
-      expect(mockWalletClient.signTypedData).toHaveBeenCalledWith({
+      expect(mockSignTypedData).toHaveBeenCalledWith({
         account: mockWalletClient.account,
         domain: {
           name: "TestMultipass",
@@ -113,8 +116,8 @@ describe("Multipass", () => {
 
       const multipassNoAccount = new Multipass({
         chainId: mockChainId,
-        // eslint-disable-next-line
-        walletClient: { ...mockWalletClient, account: null } as any,
+        publicClient: mockPublicClient,
+        walletClient: { ...mockWalletClient, account: undefined } as WalletClient,
       });
 
       await expect(multipassNoAccount.signRegistrarMessage(message, verifierAddress)).rejects.toThrow(

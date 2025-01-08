@@ -67,7 +67,7 @@ export default class RankifyPlayer extends InstanceBase {
         abi: tokenContract.abi,
         functionName: "approve",
         args: [this.instanceAddress, value],
-        account: this.walletClient.account?.address,
+        account: this.walletClient.account,
       });
 
       const hash = await this.walletClient.writeContract(request);
@@ -142,7 +142,7 @@ export default class RankifyPlayer extends InstanceBase {
       functionName: "joinGame",
       args: [gameId],
       value,
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
     });
 
     const hash = await this.walletClient.writeContract(request);
@@ -156,7 +156,7 @@ export default class RankifyPlayer extends InstanceBase {
       abi: instanceAbi,
       functionName: "startGame",
       args: [gameId],
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
     });
 
     const hash = await this.walletClient.writeContract(request);
@@ -170,7 +170,7 @@ export default class RankifyPlayer extends InstanceBase {
       abi: instanceAbi,
       functionName: "cancelGame",
       args: [gameId],
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
     });
 
     const hash = await this.walletClient.writeContract(request);
@@ -184,7 +184,7 @@ export default class RankifyPlayer extends InstanceBase {
       abi: instanceAbi,
       functionName: "leaveGame",
       args: [gameId],
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
     });
 
     const hash = await this.walletClient.writeContract(request);
@@ -198,7 +198,7 @@ export default class RankifyPlayer extends InstanceBase {
       abi: instanceAbi,
       functionName: "openRegistration",
       args: [gameId],
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
     });
 
     const hash = await this.walletClient.writeContract(request);
@@ -213,7 +213,7 @@ export default class RankifyPlayer extends InstanceBase {
       abi: instanceAbi,
       functionName: "setJoinRequirements",
       args: params,
-      account: this.walletClient.account?.address,
+      account: this.walletClient.account,
     });
 
     const hash = await this.walletClient.writeContract(request);

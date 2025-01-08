@@ -1,10 +1,14 @@
 import { Command } from "commander";
-import { registerCommand } from "./register";
-import { queryCommand } from "./query";
-import { ownerCommand } from "./owner";
+import { domainCommand } from "./domain";
+import contractCommand from "./contract";
+import domainsCommand from "./domains";
+// import { ownerCommand } from "./owner";
+// import stateCommand from "./state";
 
 export const multipassCommand = new Command("multipass")
   .description("Manage Multipass operations")
-  .addCommand(registerCommand)
-  .addCommand(queryCommand)
-  .addCommand(ownerCommand);
+  .addCommand(domainCommand)
+  .addCommand(contractCommand)
+  .addCommand(domainsCommand);
+// .addCommand(ownerCommand)
+// .addCommand(stateCommand);

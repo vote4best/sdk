@@ -31,6 +31,7 @@ peeramid --help
 peeramid distributions list
 peeramid fellowship create
 peeramid instances list
+peeramid multipass domains create
 ```
 
 ## Development

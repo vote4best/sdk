@@ -1,4 +1,4 @@
-import { type Address, type WalletClient, type Hex, TypedDataDomain } from "viem";
+import { type Address, type WalletClient, type Hex, TypedDataDomain, PublicClient } from "viem";
 import { getArtifact } from "../utils";
 import type { RegisterMessage } from "../types";
 import MultipassBase from "./MultipassBase";
@@ -38,8 +38,16 @@ export default class Multipass extends MultipassBase {
    * @param params.chainId - ID of the blockchain network
    * @param params.walletClient - Wallet client for signing transactions
    */
-  constructor({ chainId, walletClient }: { chainId: number; walletClient: WalletClient }) {
-    super({ chainId });
+  constructor({
+    chainId,
+    walletClient,
+    publicClient,
+  }: {
+    chainId: number;
+    walletClient: WalletClient;
+    publicClient: PublicClient;
+  }) {
+    super({ chainId, publicClient });
     const artifact = getArtifact(chainId, "Multipass");
     this.name = artifact.execute.args[0];
     this.version = artifact.execute.args[1];
