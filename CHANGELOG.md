@@ -1,5 +1,11 @@
 # peeramid-labs/sdk
 
+## 3.0.2
+
+### Patch Changes
+
+- [`5e1248151ecf748afb46e7a6382dfe4b97367620`](https://github.com/peeramid-labs/sdk/commit/5e1248151ecf748afb46e7a6382dfe4b97367620) Thanks [@peersky](https://github.com/peersky)! - downgrade chalk
+
 ## 3.0.1
 
 ### Patch Changes
