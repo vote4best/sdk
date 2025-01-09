@@ -1,5 +1,5 @@
 import { Address, PublicClient, type GetContractReturnType, type Block } from "viem";
-import { ApiError } from "../utils/index";
+import { ApiError, findContractDeploymentBlock, getArtifact } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
 
@@ -36,6 +36,8 @@ export default class InstanceBase {
   /** Address of the Rankify instance contract */
   instanceAddress: Address;
 
+  creationBlock: bigint;
+
   /**
    * Creates a new InstanceBase
    * @param {Object} params - Constructor parameters
@@ -47,14 +49,17 @@ export default class InstanceBase {
     publicClient,
     chainId,
     instanceAddress,
+    creationBlock = 0n,
   }: {
     publicClient: PublicClient;
     chainId: number;
     instanceAddress: Address;
+    creationBlock?: bigint;
   }) {
     this.publicClient = publicClient;
     this.chainId = chainId;
     this.instanceAddress = instanceAddress;
+    this.creationBlock = creationBlock;
   }
 
   /**
@@ -66,6 +71,7 @@ export default class InstanceBase {
     const logs = await this.publicClient.getContractEvents({
       address: this.instanceAddress,
       abi: instanceAbi,
+      fromBlock: await this.getCreationBlock(),
       eventName: "TurnEnded",
       args: {
         gameId,
@@ -79,6 +85,12 @@ export default class InstanceBase {
     }
 
     return logs[0];
+  };
+
+  getCreationBlock = async () => {
+    if (this.creationBlock == 0n)
+      this.creationBlock = await findContractDeploymentBlock(this.publicClient, this.instanceAddress);
+    return this.creationBlock;
   };
 
   /**
@@ -119,6 +131,7 @@ export default class InstanceBase {
     const voteEvents = await this.publicClient.getContractEvents({
       address: this.instanceAddress,
       abi: instanceAbi,
+      fromBlock: await this.getCreationBlock(),
       eventName: "VoteSubmitted",
       args: {
         gameId,
@@ -129,6 +142,7 @@ export default class InstanceBase {
     const proposalEvents = await this.publicClient.getContractEvents({
       address: this.instanceAddress,
       abi: instanceAbi,
+      fromBlock: await this.getCreationBlock(),
       eventName: "ProposalSubmitted",
       args: {
         gameId,
@@ -173,6 +187,7 @@ export default class InstanceBase {
       const lastTurnEndedEvent = await this.publicClient.getContractEvents({
         address: this.instanceAddress,
         abi: instanceAbi,
+        fromBlock: await this.getCreationBlock(),
         eventName: "TurnEnded",
         args: { turn: currentTurn - 1n, gameId },
       });
@@ -200,6 +215,7 @@ export default class InstanceBase {
     const log = await this.publicClient.getContractEvents({
       address: this.instanceAddress,
       abi: instanceAbi,
+      fromBlock: await this.getCreationBlock(),
       eventName: "RegistrationOpen",
       args: {
         gameId: gameId,
@@ -271,6 +287,7 @@ export default class InstanceBase {
     const logs = await this.publicClient.getContractEvents({
       address: this.instanceAddress,
       abi: instanceAbi,
+      fromBlock: await this.getCreationBlock(),
       eventName: eventName,
       args: args,
     });

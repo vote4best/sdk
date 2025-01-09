@@ -19,6 +19,9 @@ describe("DistributorClient", () => {
   // Mock public client
   const mockPublicClient = {
     request: jest.fn(),
+    getBlockNumber: jest.fn(() => Promise.resolve(1000n)),
+    getBytecode: jest.fn(({ blockNumber }) => Promise.resolve(blockNumber >= 100n ? "0x1234" : "0x")),
+    chain: { id: 1 },
   };
   (createPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
 

@@ -66,6 +66,8 @@ const mockPublicClient = {
   simulateContract: mockSimulateContract,
   waitForTransactionReceipt: mockWaitForTransactionReceipt,
   getContractEvents: mockGetContractEvents,
+  getBlockNumber: jest.fn(() => Promise.resolve(1000n)),
+  getBytecode: jest.fn(({ blockNumber }) => Promise.resolve(blockNumber >= 100n ? "0x1234" : "0x")),
 } as unknown as PublicClient;
 
 const mockWalletClient = {

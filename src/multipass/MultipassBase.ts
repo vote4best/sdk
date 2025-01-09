@@ -46,6 +46,7 @@ export default class MultipassBase {
   chainId: number;
   /** Public client for reading contracts */
   publicClient: PublicClient;
+  creationBlock: bigint;
 
   /**
    * Creates a new MultipassBase instance
@@ -56,6 +57,8 @@ export default class MultipassBase {
   constructor({ chainId, publicClient }: { chainId: number; publicClient: PublicClient }) {
     this.chainId = chainId;
     this.publicClient = publicClient;
+    const { receipt } = getArtifact(chainId, "Multipass");
+    this.creationBlock = BigInt(receipt.blockNumber);
   }
 
   /**
@@ -299,7 +302,7 @@ export default class MultipassBase {
     const initializedFilter = await this.publicClient.getContractEvents({
       address: this.getContractAddress(),
       abi: MultipassAbi,
-      fromBlock: 0n,
+      fromBlock: this.creationBlock,
       eventName: "InitializedDomain",
     });
 
@@ -362,27 +365,32 @@ export default class MultipassBase {
    * @returns Array of records with their states
    */
   public async listRecords(onlyActive?: boolean): Promise<Array<{ record: CustomRecord; isActive: boolean }>> {
-    const registeredFilter = await this.publicClient.getContractEvents({
+    const registeredFilterP = this.publicClient.getContractEvents({
       address: this.getContractAddress(),
       abi: MultipassAbi,
-      fromBlock: 0n,
+      fromBlock: this.creationBlock,
       eventName: "Registered",
     });
 
-    const renewedFilter = await this.publicClient.getContractEvents({
+    const renewedFilterP = this.publicClient.getContractEvents({
       address: this.getContractAddress(),
       abi: MultipassAbi,
-      fromBlock: 0n,
+      fromBlock: this.creationBlock,
       eventName: "Renewed",
     });
 
-    const deletedFilter = await this.publicClient.getContractEvents({
+    const deletedFilterP = this.publicClient.getContractEvents({
       address: this.getContractAddress(),
       abi: MultipassAbi,
-      fromBlock: 0n,
+      fromBlock: this.creationBlock,
       eventName: "nameDeleted",
     });
 
+    const [registeredFilter, renewedFilter, deletedFilter] = await Promise.all([
+      registeredFilterP,
+      renewedFilterP,
+      deletedFilterP,
+    ]);
     const records = new Map<string, { record: CustomRecord; isActive: boolean }>();
 
     // Process registered records

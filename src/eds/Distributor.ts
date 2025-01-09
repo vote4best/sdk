@@ -28,6 +28,7 @@ export class DistributorClient {
       abi: DistributorAbi,
       client: this.publicClient,
     });
+    if (!this.publicClient.chain?.id) throw new Error("Chain ID is not set");
 
     const events = await contract.getEvents.Instantiated(
       {

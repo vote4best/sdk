@@ -1,8 +1,21 @@
+// Mock utils
+jest.mock("../../utils", () => ({
+  getArtifact: jest.fn().mockReturnValue({
+    execute: {
+      args: ["TestMultipass", "1.0.0"],
+    },
+    address: "0x1234567890123456789012345678901234567890",
+    receipt: {
+      blockNumber: 1000,
+    },
+  }),
+}));
+
 import { describe, expect, test, jest } from "@jest/globals";
 import Multipass from "../Registrar";
-import { createPublicClient, createWalletClient, Hex, type PublicClient, type WalletClient } from "viem";
-import { Address } from "viem";
+import { createPublicClient, createWalletClient, Hex, type WalletClient } from "viem";
 import { RegisterMessage } from "../../types";
+import { MOCK_ADDRESSES, createMockPublicClient, createMockWalletClient } from "../../__tests__/utils";
 
 // Mock viem
 jest.mock("viem", () => ({
@@ -13,30 +26,20 @@ jest.mock("viem", () => ({
   http: jest.fn(),
 }));
 
-// Mock utils
-jest.mock("../../utils", () => ({
-  getArtifact: jest.fn().mockReturnValue({
-    execute: {
-      args: ["TestMultipass", "1.0.0"],
-    },
-    address: "0x1234567890123456789012345678901234567890",
-  }),
-}));
-
 describe("Multipass", () => {
   const mockChainId = 1;
-  const mockPublicClient = {
+  const mockPublicClient = createMockPublicClient({
     request: jest.fn(),
     readContract: jest.fn(),
-  } as unknown as PublicClient;
+  });
 
   const mockSignTypedData = jest.fn<() => Promise<Hex>>();
-  const mockWalletClient = {
+  const mockWalletClient = createMockWalletClient({
     account: {
-      address: "0x1234567890123456789012345678901234567890" as Address,
+      address: MOCK_ADDRESSES.OWNER,
     },
     signTypedData: mockSignTypedData,
-  } as unknown as WalletClient;
+  });
 
   (createPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
   (createWalletClient as jest.Mock).mockReturnValue(mockWalletClient);
@@ -75,7 +78,7 @@ describe("Multipass", () => {
         validUntil: BigInt(1234567890),
         nonce: BigInt(1),
       };
-      const verifierAddress = "0x9876543210987654321098765432109876543210" as Address;
+      const verifierAddress = "0x9876543210987654321098765432109876543210" as Hex;
 
       mockSignTypedData.mockResolvedValue("0xsignedMessage" as `0x${string}`);
 
@@ -112,7 +115,7 @@ describe("Multipass", () => {
         validUntil: BigInt(1234567890),
         nonce: BigInt(1),
       };
-      const verifierAddress = "0x9876543210987654321098765432109876543210" as Address;
+      const verifierAddress = "0x9876543210987654321098765432109876543210" as Hex;
 
       const multipassNoAccount = new Multipass({
         chainId: mockChainId,

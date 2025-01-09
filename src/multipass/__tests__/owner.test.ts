@@ -19,6 +19,9 @@ jest.mock("../../utils", () => ({
   getArtifact: jest.fn().mockReturnValue({
     address: "0x1234567890123456789012345678901234567890",
     abi: MultipassAbi,
+    receipt: {
+      blockNumber: 100,
+    },
   }),
 }));
 
@@ -52,6 +55,8 @@ describe("MultipassOwner", () => {
 
   const mockPublicClient = {
     readContract: mockReadContract,
+    getBlockNumber: jest.fn(() => Promise.resolve(1000n)),
+    getBytecode: jest.fn(({ blockNumber }) => Promise.resolve(blockNumber >= 100n ? "0x1234" : "0x")),
   } as unknown as PublicClient;
 
   const multipassOwner = new MultipassOwner({

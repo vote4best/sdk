@@ -109,3 +109,39 @@ export const getContract = <TArtifactName extends ArtifactTypes, TClient extends
     client,
   }) as GetContractReturnType<ArtifactAbi[TArtifactName], TClient>;
 };
+
+/**
+ * Binary searches for the block where a contract was first deployed
+ * @param client The viem public client to use
+ * @param address The contract address to search for
+ * @param startBlock The block to start searching from (defaults to 0)
+ * @param endBlock The block to end searching at (defaults to 'latest')
+ * @returns The block number where the contract was first deployed
+ */
+export const findContractDeploymentBlock = async (
+  client: PublicClient,
+  address: Address,
+  startBlock: bigint = 0n,
+  endBlock?: bigint
+): Promise<bigint> => {
+  const latestBlock = endBlock ?? (await client.getBlockNumber());
+  let left = startBlock;
+  let right = latestBlock;
+  let result = 0n;
+
+  while (left <= right) {
+    const mid = left + (right - left) / 2n;
+    const code = await client.getBytecode({ address, blockNumber: mid });
+
+    if (code && code !== "0x") {
+      // Contract exists at this block, try earlier
+      result = mid;
+      right = mid - 1n;
+    } else {
+      // Contract doesn't exist, try later blocks
+      left = mid + 1n;
+    }
+  }
+
+  return result;
+};
