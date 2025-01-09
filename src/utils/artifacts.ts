@@ -74,7 +74,7 @@ export const getArtifact = (
       transactionHash: Hex;
       blockNumber: number;
       args: string[];
-      logs: Log<bigint, number, false>[];
+      logs?: Log<bigint, number, false>[];
     };
   };
 
@@ -86,7 +86,7 @@ export const getArtifact = (
     address: artifact.address,
     execute: artifact.execute,
     abi: artifact.abi,
-    receipt: { ...artifact.receipt, logs: parseEventLogs({ abi: artifact.abi, logs: artifact.receipt.logs }) },
+    receipt: { ...artifact.receipt, logs: parseEventLogs({ abi: artifact.abi, logs: artifact.receipt?.logs ?? [] }) },
   };
 };
 

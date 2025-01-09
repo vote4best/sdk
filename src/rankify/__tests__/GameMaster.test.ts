@@ -1,14 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from "@jest/globals";
-import {
-  type PublicClient,
-  type WalletClient,
-  type Hash,
-  type GetContractEventsReturnType,
-  encodeEventTopics,
-  Hex,
-} from "viem";
+import { type PublicClient, type WalletClient, type GetContractEventsReturnType, Hex } from "viem";
 import { GameMaster } from "../GameMaster";
-import { RankifyDiamondInstanceAbi } from "../../abis";
 import { MOCK_ADDRESSES, MOCK_HASHES, createMockPublicClient, createMockWalletClient } from "../../__tests__/utils";
 
 // Mock viem

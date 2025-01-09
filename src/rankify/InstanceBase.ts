@@ -1,5 +1,5 @@
 import { Address, PublicClient, type GetContractReturnType, type Block } from "viem";
-import { ApiError, findContractDeploymentBlock, getArtifact } from "../utils/index";
+import { ApiError, findContractDeploymentBlock } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
 
