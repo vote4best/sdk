@@ -1,5 +1,13 @@
 # peeramid-labs/sdk
 
+## 3.0.3
+
+### Patch Changes
+
+- [`96635910e6ddb8d92557e3e0e559969c3422704d`](https://github.com/peeramid-labs/sdk/commit/96635910e6ddb8d92557e3e0e559969c3422704d) Thanks [@peersky](https://github.com/peersky)! - log queries now attempt to find contract creation block to incease log filtering speed
+
+- ora downgraded
+
 ## 3.0.2
 
 ### Patch Changes
