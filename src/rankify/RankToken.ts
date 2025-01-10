@@ -1,6 +1,7 @@
 import { Address, PublicClient, getContract } from "viem";
 import RankTokenAbi from "../abis/RankToken";
 import { FellowshipMetadata, SUBMISSION_TYPES, CONTENT_STORAGE } from "../types";
+import { handleRPCError } from "../utils";
 
 export default class RankTokenClient {
   chainId: number;
@@ -13,13 +14,17 @@ export default class RankTokenClient {
     this.rankTokenAddress = address;
   }
 
-  getRankTokenURI = () => {
-    const rankToken = getContract({
-      address: this.rankTokenAddress,
-      abi: RankTokenAbi,
-      client: this.publicClient,
-    });
-    return rankToken.read.contractURI();
+  getRankTokenURI = async () => {
+    try {
+      const rankToken = getContract({
+        address: this.rankTokenAddress,
+        abi: RankTokenAbi,
+        client: this.publicClient,
+      });
+      return rankToken.read.contractURI();
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   // Type guard for FellowshipMetadata
@@ -99,11 +104,15 @@ export default class RankTokenClient {
   };
 
   getRankTokenBalance = async (tokenId: bigint, account: Address) => {
-    const rankToken = getContract({
-      address: this.rankTokenAddress,
-      abi: RankTokenAbi,
-      client: this.publicClient,
-    });
-    return rankToken.read.balanceOf([account, tokenId]);
+    try {
+      const rankToken = getContract({
+        address: this.rankTokenAddress,
+        abi: RankTokenAbi,
+        client: this.publicClient,
+      });
+      return rankToken.read.balanceOf([account, tokenId]);
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 }

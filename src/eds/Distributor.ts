@@ -7,7 +7,15 @@ export class DistributorClient {
   address: Address;
   createdAtBlock?: bigint;
 
-  constructor({ address, publicClient, creationBlock }: { address: Address; publicClient: PublicClient; creationBlock?: bigint }) {
+  constructor({
+    address,
+    publicClient,
+    creationBlock,
+  }: {
+    address: Address;
+    publicClient: PublicClient;
+    creationBlock?: bigint;
+  }) {
     this.address = getAddress(address, publicClient?.chain?.id);
     this.publicClient = publicClient;
     this.createdAtBlock = creationBlock;
