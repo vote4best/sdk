@@ -1,4 +1,4 @@
-import { BaseError, CallExecutionError, ContractFunctionRevertedError, ContractFunctionZeroDataError } from "viem";
+import { BaseError, CallExecutionError, ContractFunctionRevertedError } from "viem";
 
 interface ErrorOptions {
   cause?: unknown;
