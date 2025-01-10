@@ -4,7 +4,7 @@
  */
 
 import { DistributorClient } from "../eds/Distributor";
-import { getArtifact, parseInstantiated } from "../utils";
+import { getArtifact, handleRPCError, parseInstantiated } from "../utils";
 import { MAOInstances } from "../types/contracts";
 import instanceAbi from "../abis/RankifyDiamondInstance";
 import rankTokenAbi from "../abis/RankToken";
@@ -27,8 +27,6 @@ import {
   Hex,
   erc20Abi,
   maxUint256,
-  ContractFunctionRevertedError,
-  BaseError,
   encodePacked,
 } from "viem";
 import MaoDistributionAbi from "../abis/MAODistribution";
@@ -197,11 +195,15 @@ export class MAODistributorClient extends DistributorClient {
   }
 
   async getDistributions(): Promise<readonly `0x${string}`[]> {
-    return this.publicClient.readContract({
-      abi: distributorAbi,
-      functionName: "getDistributions",
-      address: this.address,
-    });
+    try {
+      return this.publicClient.readContract({
+        abi: distributorAbi,
+        functionName: "getDistributions",
+        address: this.address,
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   }
 
   async addNamedDistribution(
@@ -225,39 +227,45 @@ export class MAODistributorClient extends DistributorClient {
     });
 
     if (distrAddress == "0x0000000000000000000000000000000000000000") {
+      try {
+        const { request } = await this.publicClient.simulateContract({
+          abi: CodeIndexAbi,
+          address: getArtifact(chain.id, "CodeIndex").address,
+          functionName: "register",
+          args: [address],
+          account: this.walletClient.account,
+          chain: this.walletClient.chain,
+        });
+        await this.walletClient
+          .writeContract(request)
+          .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
+      } catch (e) {
+        throw await handleRPCError(e);
+      }
+    }
+    try {
       const { request } = await this.publicClient.simulateContract({
-        abi: CodeIndexAbi,
-        address: getArtifact(chain.id, "CodeIndex").address,
-        functionName: "register",
-        args: [address],
+        abi: distributorAbi,
+        address: this.address,
+        functionName: "addNamedDistribution",
+        args: [name, hashCode, initializer],
         account: this.walletClient.account,
         chain: this.walletClient.chain,
       });
-      await this.walletClient
+
+      const receipt = await this.walletClient
         .writeContract(request)
         .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
+      const distributionAddedEvent = parseEventLogs({
+        abi: distributorAbi,
+        logs: receipt.logs,
+        eventName: "DistributionAdded",
+      });
+
+      return { receipt, distributionAddedEvent: distributionAddedEvent[0] };
+    } catch (e) {
+      throw await handleRPCError(e);
     }
-
-    const { request } = await this.publicClient.simulateContract({
-      abi: distributorAbi,
-      address: this.address,
-      functionName: "addNamedDistribution",
-      args: [name, hashCode, initializer],
-      account: this.walletClient.account,
-      chain: this.walletClient.chain,
-    });
-
-    const receipt = await this.walletClient
-      .writeContract(request)
-      .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
-    const distributionAddedEvent = parseEventLogs({
-      abi: distributorAbi,
-      logs: receipt.logs,
-      eventName: "DistributionAdded",
-      // strict: false,
-    });
-
-    return { receipt, distributionAddedEvent: distributionAddedEvent[0] };
   }
 
   /**
@@ -305,12 +313,16 @@ export class MAODistributorClient extends DistributorClient {
   }
 
   async getInstantiatePrice(distributorsId: Hex): Promise<bigint> {
-    return this.publicClient.readContract({
-      abi: distributorAbi,
-      functionName: "instantiationCosts",
-      address: this.address,
-      args: [distributorsId],
-    });
+    try {
+      return this.publicClient.readContract({
+        abi: distributorAbi,
+        functionName: "instantiationCosts",
+        address: this.address,
+        args: [distributorsId],
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   }
 
   async setInstantiationAllowance(amount?: bigint) {
@@ -334,32 +346,29 @@ export class MAODistributorClient extends DistributorClient {
 
       await this.walletClient.writeContract(request);
     } catch (err) {
-      if (err instanceof BaseError) {
-        const revertError = err.walk((err) => err instanceof ContractFunctionRevertedError);
-        if (revertError instanceof ContractFunctionRevertedError) {
-          const errorName = revertError.data?.errorName ?? "";
-          console.log(errorName);
-        }
-      }
-      throw err;
+      throw await handleRPCError(err);
     }
   }
 
   async needsAllowance(distributorsId: Hex) {
     if (!this.walletClient) throw new Error("walletClient is required, use constructor with walletClient");
     if (!this.walletClient.account?.address) throw new Error("No account address found");
-    const paymentToken = await this.publicClient.readContract({
-      abi: distributorAbi,
-      functionName: "paymentToken",
-      address: this.address,
-    });
-    const allowance = await this.publicClient.readContract({
-      abi: erc20Abi,
-      functionName: "allowance",
-      address: paymentToken,
-      args: [this.walletClient.account?.address, this.address],
-    });
-    return allowance < (await this.getInstantiatePrice(distributorsId));
+    try {
+      const paymentToken = await this.publicClient.readContract({
+        abi: distributorAbi,
+        functionName: "paymentToken",
+        address: this.address,
+      });
+      const allowance = await this.publicClient.readContract({
+        abi: erc20Abi,
+        functionName: "allowance",
+        address: paymentToken,
+        args: [this.walletClient.account?.address, this.address],
+      });
+      return allowance < (await this.getInstantiatePrice(distributorsId));
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   }
 
   /**
@@ -411,21 +420,7 @@ export class MAODistributorClient extends DistributorClient {
       return this.addressesToContracts(addresses);
       // eslint-disable-next-line
     } catch (e: any) {
-      if (e?.cause?.signature) {
-        if (e instanceof BaseError) {
-          const revertError = e.walk((err) => err instanceof ContractFunctionRevertedError);
-          if (revertError instanceof ContractFunctionRevertedError) {
-            const errorName = revertError.data?.errorName ?? "";
-            console.log(errorName);
-          }
-        }
-        const remoteAttempt = fetch(
-          `https://www.4byte.directory/api/v1/signatures/?hex_signature=${e?.cause?.signature}`
-        );
-        const response = await remoteAttempt;
-        const data = await response.json();
-        throw new Error(`error: ${e?.message} | 4byte: ${JSON.stringify(data.results, null, 2)}`);
-      } else throw e;
+      throw await handleRPCError(e);
     }
   }
 }
