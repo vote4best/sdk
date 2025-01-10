@@ -8,7 +8,7 @@ describe("artifacts", () => {
 
     const mockPublicClient = {
       getBlockNumber: jest.fn(() => Promise.resolve(1000n)),
-      getBytecode: jest.fn(({ blockNumber }) => Promise.resolve(blockNumber >= 100n ? "0x1234" : "0x")),
+      getCode: jest.fn(({ blockNumber }) => Promise.resolve(blockNumber >= 100n ? "0x1234" : "0x")),
     } as unknown as PublicClient;
 
     beforeEach(() => {
@@ -18,7 +18,7 @@ describe("artifacts", () => {
     it("should find the first block where contract was deployed", async () => {
       const result = await findContractDeploymentBlock(mockPublicClient, mockAddress);
       expect(result).toBe(100n);
-      expect(mockPublicClient.getBytecode).toHaveBeenCalled();
+      expect(mockPublicClient.getCode).toHaveBeenCalled();
     });
 
     it("should handle custom start and end blocks", async () => {
@@ -30,7 +30,7 @@ describe("artifacts", () => {
     it("should return 0 if contract not found", async () => {
       const mockClientNoContract = {
         getBlockNumber: jest.fn(() => Promise.resolve(1000n)),
-        getBytecode: jest.fn(() => Promise.resolve("0x")),
+        getCode: jest.fn(() => Promise.resolve("0x")),
       } as unknown as PublicClient;
 
       const result = await findContractDeploymentBlock(mockClientNoContract, mockAddress);
@@ -40,7 +40,7 @@ describe("artifacts", () => {
     it("should handle contract deployed at block 0", async () => {
       const mockClientBlock0 = {
         getBlockNumber: jest.fn(() => Promise.resolve(1000n)),
-        getBytecode: jest.fn(() => Promise.resolve("0x1234")),
+        getCode: jest.fn(() => Promise.resolve("0x1234")),
       } as unknown as PublicClient;
 
       const result = await findContractDeploymentBlock(mockClientBlock0, mockAddress);

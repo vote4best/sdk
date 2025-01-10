@@ -131,7 +131,7 @@ export const findContractDeploymentBlock = async (
 
   while (left <= right) {
     const mid = left + (right - left) / 2n;
-    const code = await client.getBytecode({ address, blockNumber: mid });
+    const code = await client.getCode({ address, blockNumber: mid });
 
     if (code && code !== "0x") {
       // Contract exists at this block, try earlier
