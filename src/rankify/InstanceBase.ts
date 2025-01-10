@@ -1,5 +1,5 @@
 import { Address, PublicClient, type GetContractReturnType, type Block } from "viem";
-import { ApiError, findContractDeploymentBlock } from "../utils/index";
+import { ApiError, findContractDeploymentBlock, handleRPCError } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
 
@@ -99,12 +99,17 @@ export default class InstanceBase {
    * @returns The previous turn information for the specified game.
    */
   getPreviousTurnStats = async (gameId: bigint) => {
-    const currentTurn = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
+    let currentTurn;
+    try {
+      currentTurn = await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getTurn",
+        args: [gameId],
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
 
     if (currentTurn > 1n) {
       return this.getHistoricTurn(gameId, currentTurn - 1n);
@@ -167,7 +172,7 @@ export default class InstanceBase {
       });
       return this.getVoting(gameId, turn);
     } catch (error) {
-      console.error(error);
+      throw await handleRPCError(error);
     }
   };
 
@@ -177,13 +182,13 @@ export default class InstanceBase {
    * @returns The ongoing proposals for the specified game.
    */
   getOngoingProposals = async (gameId: bigint) => {
-    const currentTurn = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
     try {
+      const currentTurn = await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getTurn",
+        args: [gameId],
+      });
       const lastTurnEndedEvent = await this.publicClient.getContractEvents({
         address: this.instanceAddress,
         abi: instanceAbi,
@@ -200,8 +205,7 @@ export default class InstanceBase {
       const args = lastTurnEndedEvent[0].args as { newProposals: unknown[] };
       return { currentTurn, proposals: args.newProposals };
     } catch (error) {
-      console.error("Error in getOngoingProposals:", error);
-      return { currentTurn, proposals: [] };
+      throw await handleRPCError(error);
     }
   };
 
@@ -233,14 +237,18 @@ export default class InstanceBase {
       return Number(block.timestamp) + timeToJoin;
     }
 
-    const gameState = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getGameState",
-      args: [gameId],
-    });
+    try {
+      const gameState = await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getGameState",
+        args: [gameId],
+      });
 
-    return Number(block.timestamp) + Number(gameState.timeToJoin);
+      return Number(block.timestamp) + Number(gameState.timeToJoin);
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -251,16 +259,20 @@ export default class InstanceBase {
    * @returns The deadline for the current turn.
    */
   resolveTurnDeadline = async (block: Block, gameId: bigint, timePerTurn?: number) => {
-    if (timePerTurn) return Number(block.timestamp) + timePerTurn;
+    try {
+      if (timePerTurn) return Number(block.timestamp) + timePerTurn;
 
-    const gameState = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getGameState",
-      args: [gameId],
-    });
+      const gameState = await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getGameState",
+        args: [gameId],
+      });
 
-    return Number(block.timestamp) + Number(gameState.timePerTurn);
+      return Number(block.timestamp) + Number(gameState.timePerTurn);
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -305,12 +317,16 @@ export default class InstanceBase {
    * Retrieves the contract state.
    */
   getContractState = async () => {
-    const state = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getContractState",
-    });
-    return state;
+    try {
+      const state = await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getContractState",
+      });
+      return state;
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -318,12 +334,16 @@ export default class InstanceBase {
    * @param account - The player's account address.
    */
   getPlayersGame = async (account: Address) => {
-    return this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getPlayersGame",
-      args: [account],
-    });
+    try {
+      return this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getPlayersGame",
+        args: [account],
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -333,29 +353,36 @@ export default class InstanceBase {
    */
   getProposalScoresList = async (gameId: bigint) => {
     if (!gameId) throw new Error("gameId not set");
+    try {
+      const logs = await this.publicClient.getContractEvents({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        eventName: "ProposalScore",
+        args: { gameId },
+      });
 
-    const logs = await this.publicClient.getContractEvents({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      eventName: "ProposalScore",
-      args: { gameId },
-    });
-
-    return logs;
+      return logs;
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
-   * Retrieves the current turn of a game.
+   * Retrieve s the current turn of a game.
    * @param gameId - The ID of the game.
    * @returns A Promise that resolves to the current turn of the game.
    */
   getCurrentTurn = async (gameId: bigint) => {
-    return this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: instanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
+    try {
+      return this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: instanceAbi,
+        functionName: "getTurn",
+        args: [gameId],
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -364,135 +391,139 @@ export default class InstanceBase {
    * @returns A promise that resolves to an object containing the game state.
    */
   getGameState = async (gameId: bigint) => {
-    const [
-      gameMaster,
-      joinRequirements,
-      scores,
-      currentTurn,
-      isFinished,
-      isOvertime,
-      isLastTurn,
-      isOpen,
-      createdBy,
-      gameRank,
-      players,
-      canStart,
-    ] = await Promise.all([
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "getGM",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "getJoinRequirements",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "getScores",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "getTurn",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "isGameOver",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "isOvertime",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "isLastTurn",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "isRegistrationOpen",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "gameCreator",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "getGameRank",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "getPlayers",
-        args: [gameId],
-      }),
-      this.publicClient.readContract({
-        address: this.instanceAddress,
-        abi: instanceAbi,
-        functionName: "canStartGame",
-        args: [gameId],
-      }),
-    ]);
-
-    const requirementsPerContract = await Promise.all(
-      joinRequirements.contractAddresses.map(async (address, idx) => {
-        return this.publicClient.readContract({
+    try {
+      const [
+        gameMaster,
+        joinRequirements,
+        scores,
+        currentTurn,
+        isFinished,
+        isOvertime,
+        isLastTurn,
+        isOpen,
+        createdBy,
+        gameRank,
+        players,
+        canStart,
+      ] = await Promise.all([
+        this.publicClient.readContract({
           address: this.instanceAddress,
           abi: instanceAbi,
-          functionName: "getJoinRequirementsByToken",
-          args: [gameId, address, joinRequirements.contractIds[idx], joinRequirements.contractTypes[idx]],
-        });
-      })
-    );
+          functionName: "getGM",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getJoinRequirements",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getScores",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getTurn",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "isGameOver",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "isOvertime",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "isLastTurn",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "isRegistrationOpen",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "gameCreator",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getGameRank",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getPlayers",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "canStartGame",
+          args: [gameId],
+        }),
+      ]);
 
-    const gamePhase = isFinished
-      ? gameStatusEnum["finished"]
-      : isOvertime
-        ? gameStatusEnum["overtime"]
-        : isLastTurn
-          ? gameStatusEnum["lastTurn"]
-          : currentTurn > 0n
-            ? gameStatusEnum["started"]
-            : isOpen
-              ? gameStatusEnum["open"]
-              : gameMaster
-                ? gameStatusEnum["created"]
-                : gameStatusEnum["notFound"];
+      const requirementsPerContract = await Promise.all(
+        joinRequirements.contractAddresses.map(async (address, idx) => {
+          return this.publicClient.readContract({
+            address: this.instanceAddress,
+            abi: instanceAbi,
+            functionName: "getJoinRequirementsByToken",
+            args: [gameId, address, joinRequirements.contractIds[idx], joinRequirements.contractTypes[idx]],
+          });
+        })
+      );
 
-    return {
-      gameMaster,
-      joinRequirements,
-      requirementsPerContract,
-      scores,
-      currentTurn,
-      isFinished,
-      isOvertime,
-      isLastTurn,
-      isOpen,
-      createdBy,
-      gameRank,
-      players,
-      canStart,
-      gamePhase,
-    };
+      const gamePhase = isFinished
+        ? gameStatusEnum["finished"]
+        : isOvertime
+          ? gameStatusEnum["overtime"]
+          : isLastTurn
+            ? gameStatusEnum["lastTurn"]
+            : currentTurn > 0n
+              ? gameStatusEnum["started"]
+              : isOpen
+                ? gameStatusEnum["open"]
+                : gameMaster
+                  ? gameStatusEnum["created"]
+                  : gameStatusEnum["notFound"];
+
+      return {
+        gameMaster,
+        joinRequirements,
+        requirementsPerContract,
+        scores,
+        currentTurn,
+        isFinished,
+        isOvertime,
+        isLastTurn,
+        isOpen,
+        createdBy,
+        gameRank,
+        players,
+        canStart,
+        gamePhase,
+      };
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 }
 

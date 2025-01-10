@@ -1,6 +1,7 @@
 import { Address, WalletClient, PublicClient, keccak256, encodePacked, Hex } from "viem";
 import { IRankifyInstanceAbi, RankifyDiamondInstanceAbi } from "../abis";
 import InstanceBase from "./InstanceBase";
+import { handleRPCError } from "../utils";
 
 /**
  * GameMaster class for managing game state and cryptographic operations in Rankify
@@ -175,14 +176,18 @@ export class GameMaster extends InstanceBase {
     if (proposerIdx != -1 && vote[proposerIdx] !== 0n) throw new Error("You cannot vote for your own proposal");
     const votesHidden = await this.encryptionCallback(JSON.stringify(vote.map((vi) => vi.toString())));
     if (!this.walletClient?.account?.address) throw new Error("No account address found");
-    const { request } = await this.publicClient.simulateContract({
-      account: this.walletClient.account,
-      address: this.instanceAddress,
-      abi: RankifyDiamondInstanceAbi,
-      functionName: "submitVote",
-      args: [gameId, votesHidden, voter],
-    });
-    return this.walletClient.writeContract(request);
+    try {
+      const { request } = await this.publicClient.simulateContract({
+        account: this.walletClient.account,
+        address: this.instanceAddress,
+        abi: RankifyDiamondInstanceAbi,
+        functionName: "submitVote",
+        args: [gameId, votesHidden, voter],
+      });
+      return this.walletClient.writeContract(request);
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -222,14 +227,18 @@ export class GameMaster extends InstanceBase {
     const encryptedProposal = await this.encryptionCallback(proposal);
     console.log("submitting proposal tx..", gameId, commitmentHash, proposal, proposer);
 
-    const { request } = await this.publicClient.simulateContract({
-      account: this.walletClient.account,
-      address: this.instanceAddress,
-      abi: RankifyDiamondInstanceAbi,
-      functionName: "submitProposal",
-      args: [{ gameId, commitmentHash, encryptedProposal, proposer }],
-    });
-    return this.walletClient.writeContract(request);
+    try {
+      const { request } = await this.publicClient.simulateContract({
+        account: this.walletClient.account,
+        address: this.instanceAddress,
+        abi: RankifyDiamondInstanceAbi,
+        functionName: "submitProposal",
+        args: [{ gameId, commitmentHash, encryptedProposal, proposer }],
+      });
+      return this.walletClient.writeContract(request);
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -302,12 +311,16 @@ export class GameMaster extends InstanceBase {
    * @returns Current turn number
    */
   currentTurn = async (gameId: bigint) => {
-    return this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: IRankifyInstanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
+    try {
+      return this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: IRankifyInstanceAbi,
+        functionName: "getTurn",
+        args: [gameId],
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -316,12 +329,16 @@ export class GameMaster extends InstanceBase {
    * @returns Array of player addresses
    */
   getPlayers = async (gameId: bigint) => {
-    return this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: IRankifyInstanceAbi,
-      functionName: "getPlayers",
-      args: [gameId],
-    });
+    try {
+      return this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: IRankifyInstanceAbi,
+        functionName: "getPlayers",
+        args: [gameId],
+      });
+    } catch (e) {
+      throw await handleRPCError(e);
+    }
   };
 
   /**
@@ -330,100 +347,104 @@ export class GameMaster extends InstanceBase {
    * @returns Transaction hash
    */
   endTurn = async (gameId: bigint) => {
-    const turn = await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: RankifyDiamondInstanceAbi,
-      functionName: "getTurn",
-      args: [gameId],
-    });
-
-    const players = (await this.publicClient.readContract({
-      address: this.instanceAddress,
-      abi: RankifyDiamondInstanceAbi,
-      functionName: "getPlayers",
-      args: [gameId],
-    })) as Address[];
-
-    if (!Array.isArray(players)) {
-      throw new Error("Expected players to be an array");
-    }
-
-    const oldProposals: {
-      proposer: Address;
-      proposal: string;
-    }[] = [];
-    const proposerIndices: bigint[] = [];
-    let votes: { player: Address; votes: bigint[] }[] = [];
-    //Proposals sequence is directly corresponding to proposers sequence
-    if (turn != 1n) {
-      const endedEvents = await this.publicClient.getContractEvents({
+    try {
+      const turn = await this.publicClient.readContract({
         address: this.instanceAddress,
         abi: RankifyDiamondInstanceAbi,
-        eventName: "TurnEnded",
-        args: { gameId, turn: turn - 1n },
+        functionName: "getTurn",
+        args: [gameId],
       });
-      const evt = endedEvents[0];
-      if (endedEvents.length > 1) throw new Error("Multiple turns ended");
-      const args = evt.args;
-      const decryptedProposals = await this.decryptProposals(gameId, turn - 1n);
-      if (args.newProposals) {
-        args.newProposals.forEach((proposal, idx) => {
-          const proposer = decryptedProposals.find((p) => p.proposal === proposal)?.proposer;
-          if (!proposer) throw new Error("No proposer found for proposal");
-          oldProposals[idx] = {
-            proposer,
-            proposal: proposal,
-          };
+
+      const players = (await this.publicClient.readContract({
+        address: this.instanceAddress,
+        abi: RankifyDiamondInstanceAbi,
+        functionName: "getPlayers",
+        args: [gameId],
+      })) as Address[];
+
+      if (!Array.isArray(players)) {
+        throw new Error("Expected players to be an array");
+      }
+
+      const oldProposals: {
+        proposer: Address;
+        proposal: string;
+      }[] = [];
+      const proposerIndices: bigint[] = [];
+      let votes: { player: Address; votes: bigint[] }[] = [];
+      //Proposals sequence is directly corresponding to proposers sequence
+      if (turn != 1n) {
+        const endedEvents = await this.publicClient.getContractEvents({
+          address: this.instanceAddress,
+          abi: RankifyDiamondInstanceAbi,
+          eventName: "TurnEnded",
+          args: { gameId, turn: turn - 1n },
         });
-      } else {
-        // Boundary case if no-one proposed a thing
-        players.forEach((p, idx) => {
-          oldProposals[idx] = {
-            proposer: p,
-            proposal: "",
-          };
+        const evt = endedEvents[0];
+        if (endedEvents.length > 1) throw new Error("Multiple turns ended");
+        const args = evt.args;
+        const decryptedProposals = await this.decryptProposals(gameId, turn - 1n);
+        if (args.newProposals) {
+          args.newProposals.forEach((proposal, idx) => {
+            const proposer = decryptedProposals.find((p) => p.proposal === proposal)?.proposer;
+            if (!proposer) throw new Error("No proposer found for proposal");
+            oldProposals[idx] = {
+              proposer,
+              proposal: proposal,
+            };
+          });
+        } else {
+          // Boundary case if no-one proposed a thing
+          players.forEach((p, idx) => {
+            oldProposals[idx] = {
+              proposer: p,
+              proposal: "",
+            };
+          });
+        }
+        votes = await this.decryptTurnVotes(gameId, turn).then((voteSubmissions) => {
+          const orderedVotes: { player: Address; votes: bigint[] }[] = players.map((player) => ({
+            player,
+            votes: new Array(players.length).fill(0n) as bigint[],
+          }));
+          players.forEach((player, playerIdx) => {
+            const vote = voteSubmissions.find((v) => v.player === player);
+            if (vote) orderedVotes[playerIdx] = vote;
+            else
+              orderedVotes[playerIdx] = {
+                player,
+                votes: new Array(players.length).fill(0n) as bigint[],
+              };
+          });
+          return orderedVotes;
         });
       }
-      votes = await this.decryptTurnVotes(gameId, turn).then((voteSubmissions) => {
-        const orderedVotes: { player: Address; votes: bigint[] }[] = players.map((player) => ({
-          player,
-          votes: new Array(players.length).fill(0n) as bigint[],
-        }));
-        players.forEach((player, playerIdx) => {
-          const vote = voteSubmissions.find((v) => v.player === player);
-          if (vote) orderedVotes[playerIdx] = vote;
-          else
-            orderedVotes[playerIdx] = {
-              player,
-              votes: new Array(players.length).fill(0n) as bigint[],
-            };
-        });
-        return orderedVotes;
+
+      const newProposals = await this.decryptProposals(gameId, turn);
+      players.forEach((player) => {
+        let proposerIdx = oldProposals.findIndex((p) => player === p.proposer);
+        if (proposerIdx === -1) proposerIdx = players.length; //Did not propose
+        proposerIndices.push(BigInt(proposerIdx));
       });
+      const tableData = players.map((player, idx) => ({
+        player,
+        proposerIndex: proposerIndices[idx],
+        proposer: oldProposals[Number(proposerIndices[idx])].proposer,
+      }));
+      console.table(tableData);
+      const shuffled = await this.shuffle(newProposals.map((x) => x.proposal));
+      console.log(votes.map((v) => v.votes));
+
+      const { request } = await this.publicClient.simulateContract({
+        abi: RankifyDiamondInstanceAbi,
+        account: this.walletClient.account,
+        address: this.instanceAddress,
+        functionName: "endTurn",
+        args: [gameId, votes.map((v) => v.votes), shuffled, proposerIndices],
+      });
+      return this.walletClient.writeContract(request);
+    } catch (e) {
+      throw await handleRPCError(e);
     }
-
-    const newProposals = await this.decryptProposals(gameId, turn);
-    players.forEach((player) => {
-      let proposerIdx = oldProposals.findIndex((p) => player === p.proposer);
-      if (proposerIdx === -1) proposerIdx = players.length; //Did not propose
-      proposerIndices.push(BigInt(proposerIdx));
-    });
-    const tableData = players.map((player, idx) => ({
-      player,
-      proposerIndex: proposerIndices[idx],
-      proposer: oldProposals[Number(proposerIndices[idx])].proposer,
-    }));
-    console.table(tableData);
-    const shuffled = await this.shuffle(newProposals.map((x) => x.proposal));
-    console.log(votes.map((v) => v.votes));
-
-    const { request } = await this.publicClient.simulateContract({
-      abi: RankifyDiamondInstanceAbi,
-      account: this.walletClient.account,
-      address: this.instanceAddress,
-      functionName: "endTurn",
-      args: [gameId, votes.map((v) => v.votes), shuffled, proposerIndices],
-    });
-    return this.walletClient.writeContract(request);
   };
 }
