@@ -42,7 +42,7 @@
     "test": "jest",
     "test:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm jest",
     "test:watch": "jest --watch",
-    "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint",
+    "lint:ci": "pnpm generate-chain-mapping && node scripts/copyAbi.cjs && pnpm lint --max-warnings 0",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch"
   },
