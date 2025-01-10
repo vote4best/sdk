@@ -98,8 +98,12 @@ export class MAODistributorClient extends DistributorClient {
    * @param client - Object containing public and wallet clients
    */
   constructor(chainId: number, client: { publicClient: PublicClient; walletClient?: WalletClient }) {
-    const { address } = getArtifact(chainId, "DAODistributor");
-    super({ address: getAddress(address), publicClient: client.publicClient });
+    const { address, receipt } = getArtifact(chainId, "DAODistributor");
+    super({
+      address: getAddress(address),
+      publicClient: client.publicClient,
+      creationBlock: BigInt(receipt.blockNumber),
+    });
     this.walletClient = client.walletClient;
   }
 
@@ -151,7 +155,7 @@ export class MAODistributorClient extends DistributorClient {
    */
   async getMAOInstances({
     namedDistribution = MAODistributorClient.DEFAULT_NAME,
-    fromBlock = 1n,
+    fromBlock,
   }: {
     namedDistribution?: string;
     fromBlock?: bigint;
@@ -168,7 +172,7 @@ export class MAODistributorClient extends DistributorClient {
       args: {
         distributionId: stringToHex(namedDistribution, { size: 32 }),
       },
-      fromBlock,
+      fromBlock: fromBlock ?? this.createdAtBlock ?? (await this.getCreationBlock()),
       toBlock: "latest",
     });
 
@@ -258,7 +262,7 @@ export class MAODistributorClient extends DistributorClient {
   async getMAOInstance({
     name = MAODistributorClient.DEFAULT_NAME,
     instanceId,
-    fromBlock = 1n,
+    fromBlock,
   }: {
     name?: string;
     instanceId: bigint;
@@ -272,12 +276,10 @@ export class MAODistributorClient extends DistributorClient {
         distributionId: stringToHex(name, { size: 32 }),
         newInstanceId: instanceId,
       },
-      fromBlock,
+      fromBlock: fromBlock ?? this.createdAtBlock ?? (await this.getCreationBlock()),
       toBlock: "latest",
     });
-  console.log(instanceId);
-  
-    
+
     if (logs.length === 0) {
       console.error("No instance found");
       throw new Error(`No instance found for distribution ${name} and id ${instanceId}`);
@@ -347,7 +349,7 @@ export class MAODistributorClient extends DistributorClient {
   async instantiate(
     args: GetAbiItemParameters<typeof MaoDistributionAbi, "distributionSchema">["args"],
     name: string = MAODistributorClient.DEFAULT_NAME,
-    chain: Chain,
+    chain: Chain
   ): Promise<MAOInstanceContracts> {
     if (!args) throw new Error("args is required");
     if (!this.walletClient) throw new Error("walletClient is required, use constructor with walletClient");

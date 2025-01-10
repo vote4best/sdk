@@ -1,13 +1,16 @@
 import { type Address, stringToHex, getContract, Hex, PublicClient, getAddress } from "viem";
 import DistributorAbi from "../abis/Distributor";
+import { findContractDeploymentBlock } from "../utils";
 
 export class DistributorClient {
   publicClient: PublicClient;
   address: Address;
+  createdAtBlock?: bigint;
 
-  constructor({ address, publicClient }: { address: Address; publicClient: PublicClient }) {
+  constructor({ address, publicClient, creationBlock }: { address: Address; publicClient: PublicClient; creationBlock?: bigint }) {
     this.address = getAddress(address, publicClient?.chain?.id);
     this.publicClient = publicClient;
+    this.createdAtBlock = creationBlock;
   }
 
   async getDistributions() {
@@ -17,6 +20,13 @@ export class DistributorClient {
       client: this.publicClient,
     });
     return contract.read.getDistributions();
+  }
+
+  async getCreationBlock() {
+    if (!this.createdAtBlock) {
+      this.createdAtBlock = await findContractDeploymentBlock(this.publicClient, this.address);
+    }
+    return this.createdAtBlock;
   }
 
   async getInstances(
