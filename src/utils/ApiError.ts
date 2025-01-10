@@ -43,7 +43,9 @@ export async function handleRPCError(e: unknown) {
           );
           const response = await remoteAttempt;
           const data = await response.json();
-          return new Error(`error: ${e?.message} | 4byte: ${JSON.stringify(data.results, null, 2)}`);
+          return new Error(
+            `error: ${e?.shortMessage} | 4byte resolved this as: ${JSON.stringify(data.results, null, 2)}`
+          );
         } else return e;
       }
       console.error(e);
