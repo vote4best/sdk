@@ -23,11 +23,12 @@ export const createWallet = async (rpcUrl?: string, key?: string): Promise<Walle
   if (!signerKey) {
     throw new Error("Private key is required. Either pass it as a parameter or set PRIVATE_KEY environment variable");
   }
-  const walletClient = createWalletClient({
+
+  // Get chain ID using public client
+  const publicClient = createPublicClient({
     transport: http(endpoint),
-    key: signerKey,
   });
-  const chainId = await walletClient.getChainId();
+  const chainId = await publicClient.getChainId();
   const chain: Chain = {
     id: chainId,
     name: chainToPath[chainId.toString()],
@@ -45,11 +46,12 @@ export const createWallet = async (rpcUrl?: string, key?: string): Promise<Walle
       },
     },
   };
+  const account = privateKeyToAccount(signerKey as Hex);
 
   return createWalletClient({
     transport: http(endpoint),
-    key: signerKey,
-    account: privateKeyToAccount(signerKey as Hex),
+    account,
     chain,
+    cacheTime: 0,
   });
 };

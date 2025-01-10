@@ -27,6 +27,9 @@ import {
   Hex,
   erc20Abi,
   maxUint256,
+  ContractFunctionRevertedError,
+  BaseError,
+  encodePacked,
 } from "viem";
 import MaoDistributionAbi from "../abis/MAODistribution";
 import distributorAbi from "../abis/DAODistributor";
@@ -194,14 +197,13 @@ export class MAODistributorClient extends DistributorClient {
 
     const code = await this.publicClient.getCode({ address });
     if (!code) throw new Error(`Code not found on ${address} address`);
-    const hashCode = keccak256(code);
+    const hashCode = keccak256(encodePacked(["bytes"], [code]));
     const distrAddress = await this.publicClient.readContract({
       abi: CodeIndexAbi,
       address: getArtifact(chain.id, "CodeIndex").address,
       functionName: "get",
       args: [hashCode],
     });
-    const [account] = await this.walletClient.getAddresses();
 
     if (distrAddress == "0x0000000000000000000000000000000000000000") {
       const { request } = await this.publicClient.simulateContract({
@@ -209,9 +211,9 @@ export class MAODistributorClient extends DistributorClient {
         address: getArtifact(chain.id, "CodeIndex").address,
         functionName: "register",
         args: [address],
-        account,
+        account: this.walletClient.account,
+        chain: this.walletClient.chain,
       });
-
       await this.walletClient
         .writeContract(request)
         .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
@@ -222,14 +224,13 @@ export class MAODistributorClient extends DistributorClient {
       address: this.address,
       functionName: "addNamedDistribution",
       args: [name, hashCode, initializer],
-      account,
-      chain,
+      account: this.walletClient.account,
+      chain: this.walletClient.chain,
     });
 
     const receipt = await this.walletClient
       .writeContract(request)
       .then((h) => this.publicClient.waitForTransactionReceipt({ hash: h }));
-
     const distributionAddedEvent = parseEventLogs({
       abi: distributorAbi,
       logs: receipt.logs,
@@ -287,14 +288,27 @@ export class MAODistributorClient extends DistributorClient {
       address: this.address,
     });
 
-    await this.walletClient.writeContract({
-      chain: this.walletClient.chain,
-      account: this.walletClient.account,
-      abi: erc20Abi,
-      functionName: "approve",
-      address: paymentToken,
-      args: [this.address, amount ? amount : maxUint256],
-    });
+    try {
+      const { request } = await this.publicClient.simulateContract({
+        abi: erc20Abi,
+        functionName: "approve",
+        address: paymentToken,
+        args: [this.address, amount ? amount : maxUint256],
+        account: this.walletClient.account,
+        chain: this.walletClient.chain,
+      });
+
+      await this.walletClient.writeContract(request);
+    } catch (err) {
+      if (err instanceof BaseError) {
+        const revertError = err.walk((err) => err instanceof ContractFunctionRevertedError);
+        if (revertError instanceof ContractFunctionRevertedError) {
+          const errorName = revertError.data?.errorName ?? "";
+          console.log(errorName);
+        }
+      }
+      throw err;
+    }
   }
 
   async needsAllowance(distributorsId: Hex) {
@@ -364,6 +378,13 @@ export class MAODistributorClient extends DistributorClient {
       // eslint-disable-next-line
     } catch (e: any) {
       if (e?.cause?.signature) {
+        if (e instanceof BaseError) {
+          const revertError = e.walk((err) => err instanceof ContractFunctionRevertedError);
+          if (revertError instanceof ContractFunctionRevertedError) {
+            const errorName = revertError.data?.errorName ?? "";
+            console.log(errorName);
+          }
+        }
         const remoteAttempt = fetch(
           `https://www.4byte.directory/api/v1/signatures/?hex_signature=${e?.cause?.signature}`
         );
