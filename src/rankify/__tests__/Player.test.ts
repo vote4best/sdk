@@ -137,7 +137,10 @@ describe("RankifyPlayer", () => {
       ]);
 
       // Execute the createGame function
-      const result = await player.createGame(mockGameParams);
+      const result = await player.createGame({
+        creationArgs: mockGameParams,
+        openNow: false,
+      });
 
       // Verify the contract interactions
       expect(mockReadContract).toHaveBeenCalledWith({
@@ -201,7 +204,9 @@ describe("RankifyPlayer", () => {
 
       mockReadContract.mockResolvedValue(100n);
 
-      await expect(playerWithoutAccount.createGame(mockGameParams)).rejects.toThrow("Account not found");
+      await expect(playerWithoutAccount.createGame({ creationArgs: mockGameParams, openNow: false })).rejects.toThrow(
+        "Account not found"
+      );
     });
   });
 });
