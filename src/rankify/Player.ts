@@ -132,6 +132,12 @@ export default class RankifyPlayer extends InstanceBase {
       if (!("gameId" in events[0].args)) throw new Error("Failed to create game: GameId not found");
       const { gameId } = events[0].args;
 
+      let openingReceipt: TransactionReceipt | undefined;
+      if (openNow) {
+        if (!gameId) throw new Error("Failed to create game: GameId not found");
+        openingReceipt = await this.openRegistration(gameId);
+      }
+
       return {
         gameId,
         receipt,
