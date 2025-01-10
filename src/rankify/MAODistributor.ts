@@ -101,8 +101,12 @@ export class MAODistributorClient extends DistributorClient {
    * @param client - Object containing public and wallet clients
    */
   constructor(chainId: number, client: { publicClient: PublicClient; walletClient?: WalletClient }) {
-    const { address } = getArtifact(chainId, "DAODistributor");
-    super({ address: getAddress(address), publicClient: client.publicClient });
+    const { address, receipt } = getArtifact(chainId, "DAODistributor");
+    super({
+      address: getAddress(address),
+      publicClient: client.publicClient,
+      creationBlock: BigInt(receipt.blockNumber),
+    });
     this.walletClient = client.walletClient;
   }
 
@@ -148,13 +152,22 @@ export class MAODistributorClient extends DistributorClient {
 
   /**
    * Get MAOInstances instances by distribution name
-   * @param namedDistribution Distribution name (defaults to "MAO Distribution")
+   * @param params.namedDistribution Distribution name (defaults to "MAO Distribution")
+   * @param params.fromBlock Block to start searching from (defaults to contract creation block)
    * @returns Array of MAOInstances contract instances
    */
-  async getMAOInstances(
-    namedDistribution: string = MAODistributorClient.DEFAULT_NAME,
-    fromBlock: bigint = 1n
-  ): Promise<MAOInstanceContracts[]> {
+  async getMAOInstances({
+    namedDistribution = MAODistributorClient.DEFAULT_NAME,
+    fromBlock,
+  }: {
+    namedDistribution?: string;
+    fromBlock?: bigint;
+  } = {}): Promise<
+    {
+      instances: MAOInstanceContracts;
+      maoInstanceId: bigint;
+    }[]
+  > {
     const logs = await this.publicClient.getContractEvents({
       address: this.address,
       abi: distributorAbi,
@@ -162,13 +175,19 @@ export class MAODistributorClient extends DistributorClient {
       args: {
         distributionId: stringToHex(namedDistribution, { size: 32 }),
       },
-      fromBlock,
+      fromBlock: fromBlock ?? this.createdAtBlock ?? (await this.getCreationBlock()),
       toBlock: "latest",
     });
 
     const instances = logs
-      .map((l) => parseInstantiated(l.args.instances as string[]))
-      .map((ip) => this.addressesToContracts(ip));
+      .map((l) => ({
+        instances: parseInstantiated(l.args.instances as string[]),
+        maoInstanceId: l.args.newInstanceId as bigint,
+      }))
+      .map((ip) => ({
+        instances: this.addressesToContracts(ip.instances),
+        maoInstanceId: ip.maoInstanceId,
+      }));
 
     return instances;
   }
@@ -241,10 +260,23 @@ export class MAODistributorClient extends DistributorClient {
     return { receipt, distributionAddedEvent: distributionAddedEvent[0] };
   }
 
-  async getMAOInstance(
-    name: string = MAODistributorClient.DEFAULT_NAME,
-    instanceId: bigint
-  ): Promise<MAOInstanceContracts> {
+  /**
+   * Gets a specific MAO instance by name and instance ID
+   * @param params Parameters for getting the instance
+   * @param params.name The name of the distribution (defaults to DEFAULT_NAME)
+   * @param params.instanceId The ID of the instance to retrieve
+   * @param params.fromBlock Optional block to start searching from (defaults to contract creation block)
+   * @returns The MAO instance contracts
+   */
+  async getMAOInstance({
+    name = MAODistributorClient.DEFAULT_NAME,
+    instanceId,
+    fromBlock,
+  }: {
+    name?: string;
+    instanceId: bigint;
+    fromBlock?: bigint;
+  }): Promise<MAOInstanceContracts> {
     const logs = await this.publicClient.getContractEvents({
       address: this.address,
       abi: distributorAbi,
@@ -253,6 +285,8 @@ export class MAODistributorClient extends DistributorClient {
         distributionId: stringToHex(name, { size: 32 }),
         newInstanceId: instanceId,
       },
+      fromBlock: fromBlock ?? this.createdAtBlock ?? (await this.getCreationBlock()),
+      toBlock: "latest",
     });
 
     if (logs.length === 0) {
