@@ -5,6 +5,7 @@ import {
   type Hex,
   GetAbiItemParameters,
   ContractFunctionArgs,
+  TransactionReceipt,
 } from "viem";
 import { getContract } from "../utils/artifacts";
 import instanceAbi from "../abis/RankifyDiamondInstance";
@@ -75,7 +76,13 @@ export default class RankifyPlayer extends InstanceBase {
     }
   };
 
-  createGame = async (creationArgs: ContractFunctionArgs<typeof instanceAbi, stateMutability, "createGame">[0]) => {
+  createGame = async ({
+    creationArgs,
+    openNow,
+  }: {
+    creationArgs: ContractFunctionArgs<typeof instanceAbi, stateMutability, "createGame">[0];
+    openNow: boolean;
+  }) => {
     // if (!creationArgs) throw new Error("args is required");
     const estimationArgs: ContractFunctionArgs<typeof instanceAbi, "pure" | "view", "estimateGamePrice"> = [
       creationArgs.minGameTime,
@@ -118,10 +125,16 @@ export default class RankifyPlayer extends InstanceBase {
     if (!events[0].args) throw new Error("Failed to create game: Event args not found");
     if (!("gameId" in events[0].args)) throw new Error("Failed to create game: GameId not found");
     const { gameId } = events[0].args;
+    let openingReceipt: TransactionReceipt | undefined;
+    if (openNow) {
+      if (!gameId) throw new Error("Failed to create game: GameId not found");
+      openingReceipt = await this.openRegistration(gameId);
+    }
 
     return {
       gameId,
       receipt,
+      openingReceipt,
     };
   };
 
