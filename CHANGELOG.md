@@ -1,5 +1,19 @@
 # peeramid-labs/sdk
 
+## 3.1.0
+
+### Minor Changes
+
+- [#77](https://github.com/peeramid-labs/sdk/pull/77) [`6b65cc42fbceb06d8e0d1f19ea6eef8deb2d7b57`](https://github.com/peeramid-labs/sdk/commit/6b65cc42fbceb06d8e0d1f19ea6eef8deb2d7b57) Thanks [@peersky](https://github.com/peersky)! - wrapped all contract write/read with error handler wrapper
+
+- [#73](https://github.com/peeramid-labs/sdk/pull/73) [`8774f567e2eb5160ab90ffab7db317efed2c8e7c`](https://github.com/peeramid-labs/sdk/commit/8774f567e2eb5160ab90ffab7db317efed2c8e7c) Thanks [@theKosmoss](https://github.com/theKosmoss)! - Update MaoDistribution to return instance id and accept input block params
+
+### Patch Changes
+
+- [#74](https://github.com/peeramid-labs/sdk/pull/74) [`affdcd68e43fc3584f639810300292106c97df65`](https://github.com/peeramid-labs/sdk/commit/affdcd68e43fc3584f639810300292106c97df65) Thanks [@peersky](https://github.com/peersky)! - Fixed bug when CLI was unable to submit transactions for "peeramid distribution add". Added code indexer CLI interface, fixed CLI crashing due to deployment files having empty logs array.
+
+- [#79](https://github.com/peeramid-labs/sdk/pull/79) [`823794da4277a81db28a20eb1fdadc49026734f3`](https://github.com/peeramid-labs/sdk/commit/823794da4277a81db28a20eb1fdadc49026734f3) Thanks [@peersky](https://github.com/peersky)! - Modified createGame API (this is breaking!) to allow flag for opening right after creation
+
 ## 3.0.3
 
 ### Patch Changes
