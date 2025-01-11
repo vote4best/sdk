@@ -540,12 +540,29 @@ export default class InstanceBase {
 
     const gameStates = await Promise.all(
       Array.from({ length: realPageSize }, (_, i) => i + startIndex).map(async (gameId) => {
-        return this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "getGameState",
-          args: [BigInt(gameId)],
-        });
+        return this.publicClient
+          .readContract({
+            address: this.instanceAddress,
+            abi: instanceAbi,
+            functionName: "getGameState",
+            args: [BigInt(gameId)],
+          })
+          .then((r) => {
+            const gamePhase = r.hasEnded
+              ? gameStatusEnum["finished"]
+              : r.isOvertime
+                ? gameStatusEnum["overtime"]
+                : r.currentTurn - r.maxTurns === 0n
+                  ? gameStatusEnum["lastTurn"]
+                  : r.startedAt > 0n
+                    ? gameStatusEnum["started"]
+                    : r.registrationOpenAt > 0n
+                      ? gameStatusEnum["open"]
+                      : r.createdBy !== zeroAddress
+                        ? gameStatusEnum["created"]
+                        : gameStatusEnum["notFound"];
+            return { ...r, gamePhase };
+          });
       })
     );
 
