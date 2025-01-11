@@ -517,7 +517,9 @@ export default class InstanceBase {
     pageParam?: number;
     pageSize?: number;
   }): Promise<{
-    items: ContractFunctionReturnType<typeof instanceAbi, "view", "getGameState">[];
+    items: (ContractFunctionReturnType<typeof instanceAbi, "view", "getGameState"> & {
+      gamePhase: gameStatusEnum;
+    })[];
     nextPage: number | undefined;
     hasMore: boolean;
   }> => {
