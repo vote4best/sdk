@@ -494,7 +494,7 @@ export default class InstanceBase {
   };
 
   getGameStates = async ({ pageParam = 0, pageSize = 10 }: { pageParam?: number; pageSize?: number }) => {
-    const { numGames } = await this.getCommonParams();
+    const { numGames } = await this.getContractState();
 
     const totalGames = Number(numGames);
     const startIndex = pageParam * pageSize;
