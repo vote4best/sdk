@@ -1,4 +1,4 @@
-import { Address, PublicClient, type GetContractReturnType, type Block } from "viem";
+import { Address, PublicClient, type GetContractReturnType, type Block, zeroAddress } from "viem";
 import { ApiError, findContractDeploymentBlock, handleRPCError } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
@@ -390,28 +390,9 @@ export default class InstanceBase {
    * @param gameId - The ID of the game.
    * @returns A promise that resolves to an object containing the game state.
    */
-  getGameState = async (gameId: bigint) => {
+  getGameStateDetails = async (gameId: bigint) => {
     try {
-      const [
-        gameMaster,
-        joinRequirements,
-        scores,
-        currentTurn,
-        isFinished,
-        isOvertime,
-        isLastTurn,
-        isOpen,
-        createdBy,
-        gameRank,
-        players,
-        canStart,
-      ] = await Promise.all([
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "getGM",
-          args: [gameId],
-        }),
+      const [joinRequirements, ongoingScores, isLastTurn, players, canStart, state] = await Promise.all([
         this.publicClient.readContract({
           address: this.instanceAddress,
           abi: instanceAbi,
@@ -427,43 +408,7 @@ export default class InstanceBase {
         this.publicClient.readContract({
           address: this.instanceAddress,
           abi: instanceAbi,
-          functionName: "getTurn",
-          args: [gameId],
-        }),
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "isGameOver",
-          args: [gameId],
-        }),
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "isOvertime",
-          args: [gameId],
-        }),
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
           functionName: "isLastTurn",
-          args: [gameId],
-        }),
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "isRegistrationOpen",
-          args: [gameId],
-        }),
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "gameCreator",
-          args: [gameId],
-        }),
-        this.publicClient.readContract({
-          address: this.instanceAddress,
-          abi: instanceAbi,
-          functionName: "getGameRank",
           args: [gameId],
         }),
         this.publicClient.readContract({
@@ -476,6 +421,12 @@ export default class InstanceBase {
           address: this.instanceAddress,
           abi: instanceAbi,
           functionName: "canStartGame",
+          args: [gameId],
+        }),
+        this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getGameState",
           args: [gameId],
         }),
       ]);
@@ -491,39 +442,91 @@ export default class InstanceBase {
         })
       );
 
-      const gamePhase = isFinished
+      let scores = ongoingScores;
+      if (state.hasEnded) {
+        const LastTurnScores = await this.publicClient.getContractEvents({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          eventName: "GameOver",
+          args: { gameId },
+          fromBlock: await this.getCreationBlock(),
+        });
+        const evt = LastTurnScores[0];
+        if (evt.args?.scores && evt.args?.players) scores = [players, evt.args.scores];
+      }
+
+      const gamePhase = state.hasEnded
         ? gameStatusEnum["finished"]
-        : isOvertime
+        : state.isOvertime
           ? gameStatusEnum["overtime"]
           : isLastTurn
             ? gameStatusEnum["lastTurn"]
-            : currentTurn > 0n
+            : state.startedAt > 0n
               ? gameStatusEnum["started"]
-              : isOpen
+              : state.registrationOpenAt > 0n
                 ? gameStatusEnum["open"]
-                : gameMaster
+                : state.createdBy !== zeroAddress
                   ? gameStatusEnum["created"]
                   : gameStatusEnum["notFound"];
 
+      const currentPhaseTimeoutAt =
+        gamePhase === gameStatusEnum["started"]
+          ? state.turnStartedAt + state.timePerTurn
+          : gamePhase === gameStatusEnum["open"]
+            ? state.registrationOpenAt + state.timeToJoin
+            : state.startedAt + state.timePerTurn;
+
       return {
-        gameMaster,
         joinRequirements,
         requirementsPerContract,
         scores,
-        currentTurn,
-        isFinished,
-        isOvertime,
         isLastTurn,
-        isOpen,
-        createdBy,
-        gameRank,
-        players,
+        isOpen: state.registrationOpenAt > 0n,
+        currentPhaseTimeout: players,
         canStart,
         gamePhase,
+        currentPhaseTimeoutAt,
+        ...state,
       };
     } catch (e) {
       throw await handleRPCError(e);
     }
+  };
+
+  getGameStates = async ({ pageParam = 0, pageSize = 10 }: { pageParam?: number; pageSize?: number }) => {
+    const { numGames } = await this.getCommonParams();
+
+    const totalGames = Number(numGames);
+    const startIndex = pageParam * pageSize;
+
+    if (startIndex >= totalGames) {
+      return {
+        items: [],
+        nextPage: undefined,
+        hasMore: false,
+      };
+    }
+
+    const realPageSize = Math.min(pageSize, totalGames - startIndex);
+    const hasMore = startIndex + realPageSize < totalGames;
+    const nextPage = hasMore ? pageParam + 1 : undefined;
+
+    const gameStates = await Promise.all(
+      Array.from({ length: realPageSize }, (_, i) => i + startIndex).map(async (gameId) => {
+        return this.publicClient.readContract({
+          address: this.instanceAddress,
+          abi: instanceAbi,
+          functionName: "getGameState",
+          args: [BigInt(gameId)],
+        });
+      })
+    );
+
+    return {
+      items: gameStates,
+      nextPage,
+      hasMore,
+    };
   };
 }
 
