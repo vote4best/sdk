@@ -67,12 +67,19 @@ export async function handleRPCError(e: unknown) {
     }
     if (revertError instanceof CallExecutionError) {
       const cause = revertError.cause.cause as { signature?: string };
-      if (cause?.signature) {
+      if (!e.name) {
         const remoteAttempt = fetch(`https://www.4byte.directory/api/v1/signatures/?hex_signature=${cause.signature}`);
         const response = await remoteAttempt;
         const data = await response.json();
         return new Error(`error: ${e?.message} | 4byte: ${JSON.stringify(data.results, null, 2)}`);
-      }
+      } else return e;
+    }
+    const cause = e.cause as { signature?: string };
+    if (cause?.signature) {
+      const remoteAttempt = fetch(`https://www.4byte.directory/api/v1/signatures/?hex_signature=${cause.signature}`);
+      const response = await remoteAttempt;
+      const data = await response.json();
+      return new Error(`error: ${e?.message} | 4byte: ${JSON.stringify(data.results, null, 2)}`);
     }
   }
   throw e;
