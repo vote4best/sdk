@@ -1,4 +1,11 @@
-import { Address, PublicClient, type GetContractReturnType, type Block, zeroAddress } from "viem";
+import {
+  Address,
+  PublicClient,
+  type GetContractReturnType,
+  type Block,
+  zeroAddress,
+  ContractFunctionReturnType,
+} from "viem";
 import { ApiError, findContractDeploymentBlock, handleRPCError } from "../utils/index";
 
 import instanceAbi from "../abis/RankifyDiamondInstance";
@@ -22,6 +29,17 @@ export enum gameStatusEnum {
   finished = "Finished",
   /** Game was not found */
   notFound = "not found",
+}
+
+interface GameState extends ContractFunctionReturnType<typeof instanceAbi, "view", "getGameState"> {
+  joinRequirements: ContractFunctionReturnType<typeof instanceAbi, "view", "getJoinRequirements">;
+  requirementsPerContract: ContractFunctionReturnType<typeof instanceAbi, "view", "getJoinRequirementsByToken">[];
+  scores: readonly [readonly `0x${string}`[], readonly bigint[]];
+  isLastTurn: boolean;
+  isOpen: boolean;
+  canStart: boolean;
+  gamePhase: gameStatusEnum;
+  currentPhaseTimeoutAt: bigint;
 }
 
 /**
@@ -390,7 +408,7 @@ export default class InstanceBase {
    * @param gameId - The ID of the game.
    * @returns A promise that resolves to an object containing the game state.
    */
-  getGameStateDetails = async (gameId: bigint) => {
+  getGameStateDetails = async (gameId: bigint): Promise<GameState> => {
     try {
       const [joinRequirements, ongoingScores, isLastTurn, players, canStart, state] = await Promise.all([
         this.publicClient.readContract({
@@ -482,10 +500,9 @@ export default class InstanceBase {
         scores,
         isLastTurn,
         isOpen: state.registrationOpenAt > 0n,
-        currentPhaseTimeout: players,
+        currentPhaseTimeoutAt,
         canStart,
         gamePhase,
-        currentPhaseTimeoutAt,
         ...state,
       };
     } catch (e) {
@@ -493,7 +510,17 @@ export default class InstanceBase {
     }
   };
 
-  getGameStates = async ({ pageParam = 0, pageSize = 10 }: { pageParam?: number; pageSize?: number }) => {
+  getGameStates = async ({
+    pageParam = 0,
+    pageSize = 10,
+  }: {
+    pageParam?: number;
+    pageSize?: number;
+  }): Promise<{
+    items: ContractFunctionReturnType<typeof instanceAbi, "view", "getGameState">[];
+    nextPage: number | undefined;
+    hasMore: boolean;
+  }> => {
     const { numGames } = await this.getContractState();
 
     const totalGames = Number(numGames);
