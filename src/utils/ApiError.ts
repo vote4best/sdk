@@ -1,4 +1,4 @@
-import { BaseError, CallExecutionError, ContractFunctionRevertedError } from "viem";
+import { BaseError, CallExecutionError, ContractFunctionExecutionError, ContractFunctionRevertedError } from "viem";
 
 interface ErrorOptions {
   cause?: unknown;
@@ -50,6 +50,20 @@ export async function handleRPCError(e: unknown) {
       }
       console.error(e);
       return new Error(`error: ${errorName}: ${revertError.shortMessage}`);
+    }
+    if (revertError instanceof ContractFunctionExecutionError) {
+      const errorName = revertError.name;
+      if (!errorName) {
+        const cause = revertError.cause as { signature?: string };
+        if (cause?.signature) {
+          const remoteAttempt = fetch(
+            `https://www.4byte.directory/api/v1/signatures/?hex_signature=${cause.signature}`
+          );
+          const response = await remoteAttempt;
+          const data = await response.json();
+          return new Error(`error: ${e?.message} | 4byte: ${JSON.stringify(data.results, null, 2)}`);
+        } else return e;
+      }
     }
     if (revertError instanceof CallExecutionError) {
       const cause = revertError.cause.cause as { signature?: string };
