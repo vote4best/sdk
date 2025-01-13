@@ -541,7 +541,8 @@ export default class InstanceBase {
     const nextPage = hasMore ? pageParam + 1 : undefined;
 
     const gameStates = await Promise.all(
-      Array.from({ length: realPageSize }, (_, i) => i + startIndex).map(async (gameId) => {
+      Array.from({ length: realPageSize }, (_, i) => i + startIndex).map(async (index) => {
+        const gameId = index + 1;
         return this.publicClient
           .readContract({
             address: this.instanceAddress,
