@@ -17,7 +17,7 @@ const domainsCommand = new Command("domains")
         const spinner = ora("Fetching domains...").start();
 
         try {
-          const publicClient = createPublic(options.rpc);
+          const publicClient = await createPublic(options.rpc);
           const chainId = Number(await publicClient.getChainId());
 
           const multipass = new MultipassBase({

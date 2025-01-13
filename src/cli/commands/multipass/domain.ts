@@ -15,7 +15,7 @@ export const domainCommand = new Command("domain").description("Domain operation
       const spinner = ora("Initializing client...").start();
 
       try {
-        const publicClient = createPublic(options.rpc);
+        const publicClient = await createPublic(options.rpc);
         const chainId = Number(await publicClient.getChainId());
 
         const multipass = new MultipassBase({
